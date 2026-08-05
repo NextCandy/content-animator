@@ -46,7 +46,7 @@ function ShowcaseCard({ site, index }: { site: { name: string; url: string }; in
 
       {/* ASCII mask sitting above the card content. */}
       <div className="pointer-events-none absolute inset-0 size-full bg-ink transition-opacity duration-500 ease-out group-hover:opacity-0 group-data-[active=true]:opacity-0 motion-reduce:hidden motion-reduce:transition-none">
-        <AsciiField color="rgba(255,255,255,0.1)" fontSize={11} density={0.012} />
+        <AsciiField color="rgba(255,255,255,0.1)" fontSize={11} density={0.006} />
       </div>
 
       <a

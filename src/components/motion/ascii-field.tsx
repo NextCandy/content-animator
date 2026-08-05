@@ -19,7 +19,7 @@ export function AsciiField({
   className,
   color = "rgba(255,255,255,0.07)",
   fontSize = 13,
-  density = 0.008,
+  density = 0.0035,
   seed = 0,
 }: {
   className?: string;
@@ -57,15 +57,29 @@ export function AsciiField({
       for (let c = from; c < from + len && c < cols; c++) grid[row * cols + c] = " ";
     };
 
-    /** Write one random phrase horizontally into consecutive cells. */
+    /** True when the run (plus one cell of padding) is free. */
+    const isFree = (row: number, start: number, len: number) => {
+      for (let c = start - 1; c <= start + len; c++) {
+        if (c < 0 || c >= cols) continue;
+        if (grid[row * cols + c] !== " ") return false;
+      }
+      return true;
+    };
+
+    /** Write one random phrase horizontally into consecutive empty cells. */
     const placePhrase = () => {
-      const phrase = ASCII_PHRASES[Math.floor(Math.random() * ASCII_PHRASES.length)]!;
-      if (cols < 4 || rows < 1) return;
-      const row = Math.floor(Math.random() * rows);
-      const maxStart = Math.max(0, cols - phrase.length);
-      const start = Math.floor(Math.random() * (maxStart + 1));
-      for (let i = 0; i < phrase.length && start + i < cols; i++) {
-        grid[row * cols + start + i] = phrase[i]!;
+      if (cols < 8 || rows < 1) return;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const phrase =
+          ASCII_PHRASES[Math.floor(Math.random() * ASCII_PHRASES.length)]!;
+        if (phrase.length + 2 > cols) continue;
+        const row = Math.floor(Math.random() * rows);
+        const start = Math.floor(Math.random() * (cols - phrase.length + 1));
+        if (!isFree(row, start, phrase.length)) continue;
+        for (let i = 0; i < phrase.length; i++) {
+          grid[row * cols + start + i] = phrase[i]!;
+        }
+        return;
       }
     };
 
@@ -82,7 +96,7 @@ export function AsciiField({
       phraseCount = Math.max(3, Math.round(cols * rows * density));
       for (let i = 0; i < phraseCount; i++) placePhrase();
       // Minority of loose characters for texture (~1.5% of cells).
-      const loose = Math.round(cols * rows * 0.015);
+      const loose = Math.round(cols * rows * 0.006);
       for (let i = 0; i < loose; i++) {
         const idx = Math.floor(Math.random() * grid.length);
         if (grid[idx] === " ") {
@@ -125,7 +139,7 @@ export function AsciiField({
       if (!visible || now - last < 1000 / 13) return;
       last = now;
       // Mutate only a couple of phrases per frame so fragments stay readable.
-      const churn = Math.max(1, Math.round(phraseCount * 0.05));
+      const churn = Math.max(1, Math.round(phraseCount * 0.04));
       for (let i = 0; i < churn; i++) {
         clearRandomRun();
         placePhrase();
