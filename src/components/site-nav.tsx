@@ -1,20 +1,46 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { useScrollContainer } from "@/components/motion/scroll-container";
 import { NAV_LINKS } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
+/** Per-character odometer roll driven by --odometer-progress on the link. */
+function Odometer({ label }: { label: string }) {
+  return (
+    <>
+      <span className="sr-only">{label}</span>
+      <span aria-hidden className="flex">
+        {label.split("").map((char, i) => (
+          <span
+            key={`${char}-${i}`}
+            className="relative inline-block overflow-hidden align-baseline"
+          >
+            <span className="invisible">{char === " " ? "\u00A0" : char}</span>
+            <span
+              className="absolute inset-x-0 top-0 flex flex-col transition-transform duration-300 ease-[cubic-bezier(0,0,0.2,1)]"
+              style={{
+                transform: "translateY(calc(var(--odometer-progress) * -50%))",
+                transitionDelay: `${i * 20}ms`,
+              }}
+            >
+              <span>{char === " " ? "\u00A0" : char}</span>
+              <span>{char === " " ? "\u00A0" : char}</span>
+            </span>
+          </span>
+        ))}
+      </span>
+    </>
+  );
+}
+
+const linkClass =
+  "relative z-1 flex h-10 items-center whitespace-nowrap px-3 transition-colors duration-300 ease-[cubic-bezier(0,0,0.2,1)] text-ink-muted hover:text-ink-foreground focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none [--odometer-progress:0] motion-safe:hover:[--odometer-progress:1]";
+
 export function SiteNav() {
-  const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const reduce = useReducedMotion();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const containerRef = useScrollContainer();
 
   useEffect(() => {
     const ids = NAV_LINKS.map((l) => l.hash);
@@ -25,31 +51,30 @@ export function SiteNav() {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (visible) setActive(visible.target.id);
       },
-      { rootMargin: "-40% 0px -50% 0px", threshold: [0, 0.25, 0.5] },
+      {
+        root: containerRef?.current ?? null,
+        rootMargin: "-40% 0px -50% 0px",
+        threshold: [0, 0.25, 0.5],
+      },
     );
     ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, []);
+  }, [containerRef]);
 
   return (
     <motion.header
-      initial={{ y: reduce ? 0 : -24, opacity: 0 }}
+      initial={{ y: reduce ? 0 : -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 py-3"
+      transition={{ duration: 0.5, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+      className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-start p-4 lg:justify-center lg:p-8"
     >
-      <nav
-        className={cn(
-          "pointer-events-auto flex items-center gap-1 rounded-[10px] border border-ink-border bg-ink/95 px-2 py-1.5 backdrop-blur-md transition-all duration-500",
-          scrolled ? "scale-[0.97] shadow-lg" : "scale-100",
-        )}
-      >
+      <nav className="pointer-events-auto flex items-center gap-1 rounded-[10px] border border-ink-border bg-ink/95 px-2 py-1.5 backdrop-blur-md">
         <Link
           to="/"
-          className="mr-1 grid size-7 place-items-center rounded-[6px] bg-ink-foreground/90 text-[9px] font-bold text-ink"
+          className="mr-1 grid size-7 place-items-center rounded-[6px] bg-ink-foreground/90 text-[9px] font-bold text-ink focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none"
           aria-label="The Content Architecture home"
         >
           CA
@@ -59,26 +84,25 @@ export function SiteNav() {
             key={link.hash}
             to="/"
             hash={link.hash}
+            aria-current={active === link.hash ? "true" : undefined}
             className={cn(
-              "mono-label relative rounded-[6px] px-3 py-2 text-ink-muted transition-colors hover:text-ink-foreground",
+              "mono-label",
+              linkClass,
               active === link.hash && "text-ink-foreground",
             )}
           >
-            {link.label}
             {active === link.hash && (
-              <motion.span
-                layoutId="nav-active"
-                className="absolute inset-x-2 -bottom-0.5 h-px bg-ink-foreground"
-              />
+              <span className="pointer-events-none absolute inset-0 rounded-lg bg-white/8 ring-1 ring-white/15" />
             )}
+            <Odometer label={link.label} />
           </Link>
         ))}
         <Link
           to="/blog"
-          className="mono-label rounded-[6px] px-3 py-2 text-ink-muted transition-colors hover:text-ink-foreground"
+          className={cn("mono-label", linkClass)}
           activeProps={{ className: "text-ink-foreground" }}
         >
-          Blog
+          <Odometer label="Blog" />
         </Link>
       </nav>
     </motion.header>
