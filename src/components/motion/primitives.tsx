@@ -56,18 +56,33 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
     if (!el) return;
     const root = container?.current ?? null;
 
+    let raf1 = 0;
+    let raf2 = 0;
+    // Let the hidden state paint for one frame first, otherwise the browser
+    // collapses hidden -> shown into a single frame and skips the transition.
+    const reveal = () => {
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setInView(true));
+      });
+    };
+
     const check = () => {
       const rect = el.getBoundingClientRect();
       const bounds = root
         ? root.getBoundingClientRect()
         : { top: 0, bottom: window.innerHeight };
       if (rect.bottom > bounds.top && rect.top < bounds.bottom) {
-        setInView(true);
+        reveal();
         return true;
       }
       return false;
     };
-    if (check()) return;
+    if (check()) {
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -82,6 +97,8 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
 
     return () => {
       observer.disconnect();
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
       window.clearTimeout(timer);
     };
   }, [container, enabled, inView, ref]);
@@ -291,10 +308,14 @@ export function FadeIn({
 
   useEffect(() => {
     if (!armed || shown) return;
-    const raf = requestAnimationFrame(() => setShown(true));
+    let inner = 0;
+    const raf = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setShown(true));
+    });
     const timer = window.setTimeout(() => setShown(true), 1200);
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(inner);
       window.clearTimeout(timer);
     };
   }, [armed, shown]);
