@@ -250,7 +250,7 @@ export function SplitButton({
     <a
       href={href}
       className={cn(
-        "group inline-flex items-stretch gap-px focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none",
+        "group inline-flex items-stretch gap-px focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
         className,
       )}
     >
