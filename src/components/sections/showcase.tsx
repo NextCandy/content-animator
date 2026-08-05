@@ -102,8 +102,15 @@ export function Showcase() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+      <div id="reviews" className="mx-auto max-w-[1400px] scroll-mt-24 overflow-x-clip px-6 md:px-10">
         <div className="mt-24 border-t border-border pt-14 lg:mt-0">
+          <Marquee speed={46} className="mb-12 opacity-70">
+            {TESTIMONIALS.concat(TESTIMONIALS).map((t, i) => (
+              <span key={i} className="mono-label px-6 text-muted-foreground">
+                {t.name} — {t.role}
+              </span>
+            ))}
+          </Marquee>
           <div className="overflow-hidden" ref={trackRef}>
             <motion.div
               className="flex"
