@@ -11,14 +11,69 @@ import {
 } from "motion/react";
 import {
   useEffect,
+  useLayoutEffect as useLayoutEffectRaw,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from "react";
 import { cn } from "@/lib/utils";
+import { useScrollContainer } from "@/components/motion/scroll-container";
+
+const useLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffectRaw : useEffect;
 
 const EASE_OUT = [0, 0, 0.2, 1] as const;
+
+/**
+ * In-view detection that works with the Lenis scroll container:
+ * - resolves the observer root from the scroll-container context
+ * - checks intersection synchronously on mount (elements already on screen)
+ * - forces the visible state after 1200ms as a safety net
+ */
+function useRevealInView(ref: RefObject<HTMLElement | null>) {
+  const container = useScrollContainer();
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (inView) return;
+    const el = ref.current;
+    if (!el) return;
+    const root = container?.current ?? null;
+
+    // Synchronous check: already inside the viewport / container on mount.
+    const check = () => {
+      const rect = el.getBoundingClientRect();
+      const bounds = root
+        ? root.getBoundingClientRect()
+        : { top: 0, bottom: window.innerHeight };
+      if (rect.bottom > bounds.top && rect.top < bounds.bottom) {
+        setInView(true);
+        return true;
+      }
+      return false;
+    };
+    if (check()) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setInView(true);
+      },
+      { root, rootMargin: "0px 0px -10% 0px" },
+    );
+    observer.observe(el);
+
+    // Safety net: never leave copy permanently invisible.
+    const timer = window.setTimeout(() => setInView(true), 1200);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [container, inView, ref]);
+
+  return inView;
+}
 
 /**
  * Line-by-line mask reveal: measures the natural line breaks after layout,
@@ -37,10 +92,13 @@ export function LineReveal({
 }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-10% 0px" });
+  const inView = useRevealInView(ref);
+  const [mounted, setMounted] = useState(false);
   const [lines, setLines] = useState<string[] | null>(null);
   const [measureKey, setMeasureKey] = useState(0);
   const words = text.split(" ");
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     setLines(null);
@@ -55,7 +113,7 @@ export function LineReveal({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (lines !== null) return;
     const el = ref.current;
     if (!el) return;
@@ -84,12 +142,14 @@ export function LineReveal({
     return <Tagged className={className}>{text}</Tagged>;
   }
 
+  // Pre-measure pass. Stays visible until JS has mounted, so a JS failure
+  // leaves plain readable text instead of an invisible block.
   if (lines === null) {
     return (
       <Tagged
         className={className}
         ref={ref as unknown as RefObject<HTMLHeadingElement>}
-        style={{ visibility: "hidden" }}
+        style={mounted ? { visibility: "hidden" } : undefined}
       >
         {words.map((word, i) => (
           <span data-line-word key={`${word}-${i}`} className="inline-block">
