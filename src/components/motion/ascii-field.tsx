@@ -31,7 +31,7 @@ function randomCell() {
  */
 export function AsciiField({
   className,
-  color = "rgba(255,255,255,0.16)",
+  color = "rgba(255,255,255,0.11)",
   fontSize = 13,
   density = 0.04,
 }: {
