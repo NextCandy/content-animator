@@ -9,6 +9,20 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { cn } from "@/lib/utils";
+import { RingTunnelGL, supportsWebGL2 } from "./ring-tunnel-gl";
+import {
+  BASE_ZOOM_RATE,
+  CHAR_ADVANCE,
+  HOLD_COMPLETE_MS,
+  HOLD_RAMP_MS,
+  HOLD_ZOOM_RATE,
+  POINTER_LERP,
+  RING_COLOR,
+  RING_GROWTH,
+  RING_PHRASE,
+  RING_SPIN,
+  usePrefersReducedMotion,
+} from "./vortex-shared";
 
 /* -------------------------------------------------------------------------- */
 /*  Measured from contentarchitecture.dev                                      */
@@ -22,12 +36,21 @@ import { cn } from "@/lib/utils";
 /*  on the ring tangent with no up-flip correction, so the top of each ring    */
 /*  reads upside down — that is intentional.                                   */
 /*                                                                            */
+/*  The reference draws that panel on a webgl2 context, so VortexPanel does    */
+/*  too (ring-tunnel-gl.tsx). The 2D ring renderer below is the fallback for   */
+/*  browsers that cannot give us webgl2; both read vortex-shared.ts so the     */
+/*  two paths cannot drift apart.                                              */
+/*                                                                            */
+/*  The tunnel runs continuously: it drifts at BASE_ZOOM_RATE at rest and      */
+/*  accelerates to HOLD_ZOOM_RATE while the pointer is held. Confirmed frame   */
+/*  by frame against a screen recording of the live site — idle frames show    */
+/*  the full vortex behind a "CLICK & HOLD" chip, held frames show a faster,   */
+/*  tighter tunnel behind "KEEP HOLDING".                                      */
+/*                                                                            */
 /*  Label state machine: "Click & hold" -> "Keep holding" on pointerdown.      */
 /*  Chip styling: bg-white p-2 font-mono text-black uppercase,                 */
 /*  transition-opacity duration-150.                                           */
 /* -------------------------------------------------------------------------- */
-
-const RING_PHRASE = "THE CONTENT ARCHITECTURE ";
 
 /** Uppercase fragments of our own feature copy, used by the "field" variant. */
 const FIELD_PHRASES = [
@@ -47,20 +70,18 @@ const FIELD_PHRASES = [
   "DRAFT MODE WIRED IN",
 ];
 
-const LOOSE_GLYPHS = "/#*_-+=<>[]{}01·";
-
 /* ---------------------------------- tuning -------------------------------- */
 
-const RING_GROWTH = 0.42; // ln-space gap between rings; larger = sparser tunnel
-const RING_FONT_RATIO = 0.14; // font size as a fraction of ring radius
+/** Cloud mask: normalised x where the field starts, and how long it fades in. */
+const CLOUD_LEFT = 0.34;
+const CLOUD_FEATHER = 0.3;
+/** Field churn. The reference shimmers constantly rather than sitting still. */
+const FIELD_MUTATE_MS = 90;
+const FIELD_MUTATE_COUNT = 5;
+
+const RING_FONT_RATIO = 0.075; // font size as a fraction of ring radius
 const RING_MIN_FONT = 5;
 const RING_MAX_FONT = 74;
-const CHAR_ADVANCE = 0.62; // monospace advance / font size
-const BASE_ZOOM_RATE = 0.14; // ln-units per second at rest
-const HOLD_ZOOM_RATE = 1.5; // ln-units per second while held
-const HOLD_RAMP_MS = 500; // ease-in time to reach HOLD_ZOOM_RATE
-const HOLD_COMPLETE_MS = 2000; // sustained hold that counts as completed
-const POINTER_LERP = 0.09; // vortex centre easing toward the pointer
 const FIELD_FONT = 13;
 const FIELD_VOID_RADIUS = 190; // px; hole punched around the cursor
 const FIELD_VOID_FEATHER = 90; // px; soft falloff at the hole's edge
@@ -75,8 +96,13 @@ export interface VortexFieldProps {
   color?: string;
   /** Multiplies the resting zoom rate. */
   speed?: number;
-  /** 0-1, how full the "field" variant is. */
+  /** 0-1, how full the "field" variant is at its core. */
   density?: number;
+  /**
+   * Thin the field into a cloud that hugs the right of the panel, the way the
+   * reference does behind the Features copy, instead of filling it edge to edge.
+   */
+  cloud?: boolean;
   /** Follow the pointer. Off for purely decorative backgrounds. */
   trackPointer?: boolean;
   /** Externally driven hold state, for the interactive hero panel. */
@@ -84,24 +110,13 @@ export interface VortexFieldProps {
   onHoldComplete?: () => void;
 }
 
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const on = () => setReduced(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return reduced;
-}
-
 export function VortexField({
   variant = "rings",
   className,
-  color = "rgba(222, 222, 222, 0.55)",
+  color = RING_COLOR,
   speed = 1,
   density = 0.45,
+  cloud = false,
   trackPointer = true,
   holding = false,
   onHoldComplete,
@@ -121,10 +136,14 @@ export function VortexField({
     targetCy: 0,
     holdStart: 0,
     holding: false,
+    completed: false,
     visible: true,
     cells: [] as string[],
     cols: 0,
     rows: 0,
+    minCol: 0,
+    cloud: false,
+    density: 0.45,
     lastSeed: 0,
   });
 
@@ -132,6 +151,7 @@ export function VortexField({
     state.current.holding = holding;
     if (holding) state.current.holdStart = performance.now();
     else state.current.holdStart = 0;
+    state.current.completed = false;
   }, [holding]);
 
   /* --------------------------- character field prep ------------------------ */
@@ -144,17 +164,41 @@ export function VortexField({
     s.rows = Math.ceil(s.h / ch) + 1;
     s.cells = new Array(s.cols * s.rows).fill("");
 
-    const phraseCount = Math.round(s.rows * density * 0.8);
-    for (let i = 0; i < phraseCount; i++) writePhrase(s);
-
-    // A minority of loose glyphs for texture.
-    const looseCount = Math.round(s.cells.length * density * 0.12);
-    for (let i = 0; i < looseCount; i++) {
-      const idx = (Math.random() * s.cells.length) | 0;
-      if (!s.cells[idx])
-        s.cells[idx] = LOOSE_GLYPHS[(Math.random() * LOOSE_GLYPHS.length) | 0]!;
+    // The reference lays this out as solid lines of copy and then thins them
+    // into a cloud — not as single glyphs scattered over the whole panel. Fill
+    // every row edge to edge first.
+    for (let row = 0; row < s.rows; row++) {
+      let col = -((Math.random() * 12) | 0);
+      while (col < s.cols) {
+        const phrase = FIELD_PHRASES[(Math.random() * FIELD_PHRASES.length) | 0]!;
+        for (let i = 0; i < phrase.length; i++) {
+          const c = col + i;
+          if (c >= 0 && c < s.cols) s.cells[row * s.cols + c] = phrase[i]!;
+        }
+        col += phrase.length + 1 + ((Math.random() * 4) | 0);
+      }
     }
-  }, [density]);
+
+    // Then carve it back: `density` at the core, fading out towards the top and
+    // bottom edges and — when `cloud` is on — off the left, so the copy column
+    // keeps a clean background.
+    s.minCol = cloud ? Math.round(s.cols * CLOUD_LEFT) : 0;
+    s.cloud = cloud;
+    s.density = density;
+    for (let row = 0; row < s.rows; row++) {
+      const ny = s.rows > 1 ? (row / (s.rows - 1)) * 2 - 1 : 0;
+      const vertical = cloud ? 1 - Math.abs(ny) ** 3 * 0.8 : 1;
+      for (let col = 0; col < s.cols; col++) {
+        const idx = row * s.cols + col;
+        if (!s.cells[idx]) continue;
+        const nx = s.cols > 1 ? col / (s.cols - 1) : 0;
+        const horizontal = cloud
+          ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER))
+          : 1;
+        if (Math.random() > density * vertical * horizontal) s.cells[idx] = "";
+      }
+    }
+  }, [cloud, density]);
 
   /* -------------------------------- rendering ------------------------------ */
 
@@ -217,7 +261,7 @@ export function VortexField({
         const count = Math.max(6, Math.floor((2 * Math.PI * r) / advance));
         const step = (2 * Math.PI) / count;
         // Alternate ring direction so the tunnel does not read as one rigid disc.
-        const spin = (i % 2 === 0 ? 1 : -1) * s.zoom * 0.35;
+        const spin = (i % 2 === 0 ? 1 : -1) * s.zoom * RING_SPIN;
 
         for (let j = 0; j < count; j++) {
           const ch = RING_PHRASE[j % RING_PHRASE.length]!;
@@ -288,8 +332,8 @@ export function VortexField({
           // ease-out on the ramp, matching the site's cubic-bezier(0,0,.2,1) feel
           const eased = 1 - Math.pow(1 - ramp, 3);
           rate += (HOLD_ZOOM_RATE - BASE_ZOOM_RATE) * eased;
-          if (held >= HOLD_COMPLETE_MS) {
-            s.holdStart = performance.now();
+          if (!s.completed && held >= HOLD_COMPLETE_MS) {
+            s.completed = true;
             onHoldComplete?.();
           }
         }
@@ -317,10 +361,9 @@ export function VortexField({
       const dt = acc / 1000;
       acc = 0;
       draw(dt);
-      if (variant === "field" && now - s.lastSeed > 1400) {
+      if (variant === "field" && now - s.lastSeed > FIELD_MUTATE_MS) {
         s.lastSeed = now;
-        // Slowly mutate: retire a couple of phrases, write a couple of new ones.
-        for (let i = 0; i < 2; i++) writePhrase(s);
+        for (let i = 0; i < FIELD_MUTATE_COUNT; i++) writePhrase(s);
       }
     };
 
@@ -376,14 +419,32 @@ export function VortexField({
   );
 }
 
-function writePhrase(s: { cells: string[]; cols: number; rows: number }) {
+function writePhrase(s: {
+  cells: string[];
+  cols: number;
+  rows: number;
+  minCol: number;
+  cloud: boolean;
+  density: number;
+}) {
   if (!s.cols || !s.rows) return;
   const phrase = FIELD_PHRASES[(Math.random() * FIELD_PHRASES.length) | 0]!;
   const row = (Math.random() * s.rows) | 0;
-  const start = (Math.random() * Math.max(1, s.cols - phrase.length)) | 0;
-  // Clear the row segment first so retired phrases do not smear.
+  const span = Math.max(1, s.cols - phrase.length - s.minCol);
+  const start = s.minCol + ((Math.random() * span) | 0);
+  const ny = s.rows > 1 ? (row / (s.rows - 1)) * 2 - 1 : 0;
+  const vertical = s.cloud ? 1 - Math.abs(ny) ** 3 * 0.8 : 1;
+
+  // Re-thin as we go, otherwise the churn slowly fills the cloud's soft edges
+  // back in. Writing "" also clears the old glyph, so phrases never smear.
   for (let i = 0; i < phrase.length && start + i < s.cols; i++) {
-    s.cells[row * s.cols + start + i] = phrase[i]!;
+    const col = start + i;
+    const nx = s.cols > 1 ? col / (s.cols - 1) : 0;
+    const horizontal = s.cloud
+      ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER))
+      : 1;
+    s.cells[row * s.cols + col] =
+      Math.random() > s.density * vertical * horizontal ? "" : phrase[i]!;
   }
 }
 
@@ -393,7 +454,8 @@ function writePhrase(s: { cells: string[]; cols: number; rows: number }) {
 
 const LABEL_IDLE = "Click & hold";
 const LABEL_HOLDING = "Keep holding";
-const LABEL_DONE = "Nice";
+/** Read off the reference recording: the third state prompts, it doesn't cheer. */
+const LABEL_DONE = "Release";
 
 export function VortexPanel({ className }: { className?: string }) {
   const [holding, setHolding] = useState(false);
@@ -407,10 +469,12 @@ export function VortexPanel({ className }: { className?: string }) {
     setPos({ x: e.clientX - r.left, y: e.clientY - r.top });
   };
 
-  const onComplete = useCallback(() => {
-    setDone(true);
+  // The hold is not ended for the visitor: the chip just starts prompting.
+  const onComplete = useCallback(() => setDone(true), []);
+
+  const endHold = useCallback(() => {
     setHolding(false);
-    window.setTimeout(() => setDone(false), 900);
+    setDone(false);
   }, []);
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -420,7 +484,7 @@ export function VortexPanel({ className }: { className?: string }) {
     }
   };
   const onKeyUp = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === " " || e.key === "Enter") setHolding(false);
+    if (e.key === " " || e.key === "Enter") endHold();
   };
 
   const label = done ? LABEL_DONE : holding ? LABEL_HOLDING : LABEL_IDLE;
@@ -440,20 +504,31 @@ export function VortexPanel({ className }: { className?: string }) {
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => {
         setHovered(false);
-        setHolding(false);
+        endHold();
       }}
       onPointerDown={() => setHolding(true)}
-      onPointerUp={() => setHolding(false)}
-      onPointerCancel={() => setHolding(false)}
+      onPointerUp={endHold}
+      onPointerCancel={endHold}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
     >
       <div className="absolute inset-0">
-        <VortexField
-          variant="rings"
-          holding={holding}
-          onHoldComplete={onComplete}
-        />
+        {/* The reference pins the vortex to the panel centre; only the chip
+            follows the cursor. */}
+        {supportsWebGL2() ? (
+          <RingTunnelGL
+            holding={holding}
+            onHoldComplete={onComplete}
+            trackPointer={false}
+          />
+        ) : (
+          <VortexField
+            variant="rings"
+            holding={holding}
+            onHoldComplete={onComplete}
+            trackPointer={false}
+          />
+        )}
       </div>
 
       {!reduced && (
@@ -483,6 +558,7 @@ export default VortexField;
 export function AsciiField({
   color = "rgba(222, 222, 222, 0.42)",
   density = 0.45,
+  cloud = false,
   className,
   trackPointer = true,
 }: {
@@ -492,6 +568,7 @@ export function AsciiField({
   /** @deprecated kept for call-site compatibility. */
   seed?: number;
   density?: number;
+  cloud?: boolean;
   className?: string;
   trackPointer?: boolean;
 }) {
@@ -500,6 +577,7 @@ export function AsciiField({
       variant="field"
       color={color}
       density={density}
+      cloud={cloud}
       className={className}
       trackPointer={trackPointer}
     />

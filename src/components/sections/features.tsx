@@ -13,7 +13,7 @@ export function Features() {
         <div className="size-full lg:sticky lg:top-0 lg:h-svh">
           <div className="relative size-full bg-black">
             <div className="absolute inset-0">
-              <AsciiField />
+              <AsciiField density={0.9} cloud />
             </div>
           </div>
         </div>
