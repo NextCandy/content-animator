@@ -325,6 +325,7 @@ export function FadeIn({
 
   useLayoutEffect(() => {
     if (reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, reduce]);
 
@@ -335,10 +336,15 @@ export function FadeIn({
       inner = requestAnimationFrame(() => setShown(true));
     });
     const timer = window.setTimeout(() => setShown(true), 1200);
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") setShown(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(inner);
       window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [armed, shown]);
 
@@ -348,14 +354,14 @@ export function FadeIn({
   return (
     <Tagged
       className={className}
-      style={{
-        opacity: hidden ? 0 : 1,
-        transform: hidden ? `translateY(${y}px)` : "translateY(0)",
-        transition: reduce
-          ? undefined
-          : `transform 500ms ${EASE_CSS}, opacity 500ms ${EASE_CSS}`,
-        transitionDelay: `${delay * 1000}ms`,
-      }}
+      data-reveal={armed && !reduce ? (hidden ? "pending" : "in") : undefined}
+      style={
+        {
+          ["--reveal-y" as string]: `${y}px`,
+          ["--reveal-duration" as string]: "500ms",
+          transitionDelay: `${delay * 1000}ms`,
+        } as React.CSSProperties
+      }
     >
       {children}
     </Tagged>
