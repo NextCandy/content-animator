@@ -22,16 +22,11 @@ export function Problems() {
 
         <ul className="mt-14 border-t border-ink-border">
           {PROBLEMS.map((p, i) => (
-            <motion.li
+            <Reveal
+              as="li"
               key={p.n}
-              initial={{ opacity: 0, y: reduce ? 0 : 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-10% 0px" }}
-              transition={{
-                duration: 0.4,
-                delay: reduce ? 0 : i * 0.045,
-                ease: [0, 0, 0.2, 1],
-              }}
+              y={reduce ? 0 : 22}
+              delay={reduce ? 0 : i * 0.045}
               onMouseEnter={() => setHovered(p.n)}
               onMouseLeave={() => setHovered(null)}
               className={cn(
@@ -48,7 +43,7 @@ export function Problems() {
               <span className="mono-label shrink-0 text-ink-muted">
                 <Scramble text={p.hrs} />
               </span>
-            </motion.li>
+            </Reveal>
           ))}
         </ul>
 

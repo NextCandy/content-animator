@@ -5,6 +5,7 @@ import {
   useScroll,
   useTransform,
   MaskReveal,
+  FadeIn,
   SplitButton,
   Marquee,
 } from "@/components/motion/primitives";
@@ -55,10 +56,9 @@ export function Hero() {
         className="pointer-events-none relative mx-auto grid min-h-[100svh] max-w-[1400px] grid-cols-1 items-center px-6 py-32 md:grid-cols-2 md:px-10"
       >
         <div className="pointer-events-auto max-w-[46rem] md:pr-10">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+          <FadeIn
+            as="p"
+            delay={0.1}
             className="mono-label relative inline-block text-foreground"
           >
             Built for agentic development.
@@ -70,7 +70,7 @@ export function Hero() {
               aria-hidden
               className="absolute top-0 left-full ml-px hidden h-[1em] w-[0.55em] translate-y-[0.15em] bg-current motion-reduce:block"
             />
-          </motion.p>
+          </FadeIn>
 
           <MaskReveal
             as="h1"
@@ -79,34 +79,28 @@ export function Hero() {
             className="display-title mt-8 text-[clamp(2.25rem,4.4vw,4rem)]"
           />
 
-          <motion.p
-            initial={{ opacity: 0, y: reduce ? 0 : 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.55, ease: [0, 0, 0.2, 1] }}
+          <FadeIn
+            as="p"
+            delay={0.55}
+            y={reduce ? 0 : 16}
             className="mt-10 max-w-xl text-[1.0625rem] leading-relaxed text-muted-foreground"
           >
             Every run invents a new one, none decided. This Next.js and Sanity kit
             commits six years of decisions. Your agent builds inside them, and checks
             its work through MCP and a real Chrome.
-          </motion.p>
+          </FadeIn>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3, ease: [0, 0, 0.2, 1] }}
+          <FadeIn
+            as="p"
+            delay={0.3}
             className="mono-label mt-8 text-muted-foreground"
           >
             For engineers who work in Next.js and Sanity.
-          </motion.p>
+          </FadeIn>
 
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.85, ease: [0, 0, 0.2, 1] }}
-            className="mt-10"
-          >
+          <FadeIn delay={0.85} y={reduce ? 0 : 14} className="mt-10">
             <SplitButton label="Get" sublabel="access" href={STRIPE_URL} />
-          </motion.div>
+          </FadeIn>
         </div>
       </motion.div>
 
