@@ -42,11 +42,21 @@ export function Pricing() {
                 delay: reduce ? 0 : i * 0.09,
                 ease: [0, 0, 0.2, 1],
               }}
-              className="flex flex-col bg-ink p-8"
+              className={cn(
+                "relative flex flex-col bg-ink p-8 transition-[box-shadow,background-color] duration-200 ease-out hover:bg-white/[0.06] hover:ring-2 hover:ring-accent",
+              )}
             >
-              <p className="mono-label text-ink-muted">{plan.name}</p>
+              <p className="mono-label flex items-center gap-2 text-ink-muted">
+                {plan.name}
+                {plan.status === "available" && (
+                  <span className="relative inline-flex size-1.5">
+                    <span className="animate-status-ping absolute inset-0 rounded-full bg-accent motion-reduce:hidden" />
+                    <span className="relative size-1.5 rounded-full bg-accent" />
+                  </span>
+                )}
+              </p>
               <p className="display-title mt-6 text-5xl">
-                <Scramble text={plan.price} duration={900} />
+                <Scramble text={plan.price} duration={500} />
               </p>
               <ul className="mt-8 flex-1 space-y-3">
                 {plan.points.map((point, pi) => (
@@ -78,7 +88,7 @@ export function Pricing() {
                     />
                     <button
                       type="submit"
-                      className="mono-label shrink-0 rounded-r-[var(--radius)] bg-ink-foreground px-5 py-4 text-ink transition-transform duration-300 hover:translate-x-1"
+                      className="mono-label shrink-0 rounded-r-[var(--radius)] bg-ink-foreground px-5 py-4 text-ink transition-colors duration-200 ease-out hover:bg-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     >
                       Notify me
                     </button>
@@ -99,7 +109,7 @@ export function Pricing() {
               <li
                 key={item}
                 className={cn(
-                  "mono-label flex gap-4 bg-ink px-5 py-4 text-ink-muted transition-colors hover:text-ink-foreground",
+                  "mono-label flex gap-4 bg-ink px-5 py-4 text-ink-muted transition-colors duration-150 ease-out hover:bg-white/[0.04] hover:text-ink-foreground",
                 )}
               >
                 <span>{String(i + 1).padStart(3, "0")}</span>

@@ -21,7 +21,7 @@ export function SiteFooter() {
           </p>
           <a
             href="mailto:hello@edoardolunardi.dev"
-            className="mono-label mt-8 inline-block border-b border-ink-border pb-1 transition-colors hover:border-ink-foreground"
+            className="mono-label mt-8 inline-block border-b border-ink-border pb-1 transition-colors duration-150 ease-out hover:border-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             hello@edoardolunardi.dev
           </a>
@@ -40,7 +40,7 @@ export function SiteFooter() {
                 <Link
                   to="/"
                   hash={l.hash}
-                  className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                  className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 >
                   {l.label}
                 </Link>
@@ -49,7 +49,7 @@ export function SiteFooter() {
             <li>
               <Link
                 to="/blog"
-                className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Blog
               </Link>
@@ -57,7 +57,7 @@ export function SiteFooter() {
             <li>
               <Link
                 to="/roadmap"
-                className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Roadmap
               </Link>
@@ -71,7 +71,7 @@ export function SiteFooter() {
             <li>
               <Link
                 to="/privacy-policy"
-                className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Privacy Policy
               </Link>
@@ -79,7 +79,7 @@ export function SiteFooter() {
             <li>
               <Link
                 to="/terms-of-service"
-                className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Terms of Service
               </Link>
@@ -89,7 +89,7 @@ export function SiteFooter() {
                 href="https://www.edoardolunardi.dev"
                 target="_blank"
                 rel="noreferrer"
-                className="mono-label text-ink-muted transition-colors hover:text-ink-foreground"
+                className="mono-label text-ink-muted transition-colors duration-150 ease-out hover:text-ink-foreground hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               >
                 Edoardo Lunardi
               </a>

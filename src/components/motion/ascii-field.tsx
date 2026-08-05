@@ -34,6 +34,7 @@ export function AsciiField({
   color = "rgba(255,255,255,0.11)",
   fontSize = 13,
   density = 0.04,
+  seed = 0,
 }: {
   className?: string;
   /** Glyph color. */
@@ -42,6 +43,8 @@ export function AsciiField({
   fontSize?: number;
   /** Fraction of cells replaced each frame. */
   density?: number;
+  /** Change this value to reshuffle the whole field. */
+  seed?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -124,13 +127,13 @@ export function AsciiField({
       ro.disconnect();
       io?.disconnect();
     };
-  }, [color, fontSize, density]);
+  }, [color, fontSize, density, seed]);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden
-      className={cn("pointer-events-none block size-full", className)}
+      className={cn("pointer-events-none block size-full motion-reduce:opacity-60", className)}
     />
   );
 }

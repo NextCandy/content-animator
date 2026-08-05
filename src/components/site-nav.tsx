@@ -35,7 +35,7 @@ function Odometer({ label }: { label: string }) {
 }
 
 const linkClass =
-  "relative z-1 flex h-10 items-center whitespace-nowrap px-3 transition-colors duration-300 ease-[cubic-bezier(0,0,0.2,1)] text-ink-muted hover:text-ink-foreground focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none [--odometer-progress:0] motion-safe:hover:[--odometer-progress:1]";
+  "relative z-1 flex h-10 items-center whitespace-nowrap px-3 transition-colors duration-200 ease-[cubic-bezier(0,0,0.2,1)] text-ink-muted hover:text-ink-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none [--odometer-progress:0] motion-safe:hover:[--odometer-progress:1]";
 
 export function SiteNav() {
   const [active, setActive] = useState<string | null>(null);
@@ -69,12 +69,12 @@ export function SiteNav() {
       initial={{ y: reduce ? 0 : -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.1, ease: [0, 0, 0.2, 1] }}
-      className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-start p-4 lg:justify-center lg:p-8"
+      className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-start p-8 lg:justify-center lg:p-16"
     >
-      <nav className="pointer-events-auto flex items-center gap-1 rounded-[10px] border border-ink-border bg-ink/95 px-2 py-1.5 backdrop-blur-md">
+      <nav className="pointer-events-auto flex max-w-[calc(100vw-4rem)] items-center gap-1 overflow-x-auto rounded-[10px] border border-ink-border bg-ink/95 px-2 py-1.5 backdrop-blur-md">
         <Link
           to="/"
-          className="mr-1 grid size-7 place-items-center rounded-[6px] bg-ink-foreground/90 text-[9px] font-bold text-ink focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none"
+          className="mr-1 grid size-7 place-items-center rounded-[6px] bg-ink-foreground/90 text-[9px] font-bold text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           aria-label="The Content Architecture home"
         >
           CA

@@ -219,7 +219,7 @@ export function Marquee({
   return (
     <div className={cn("group relative overflow-hidden", className)}>
       <div
-        className="flex w-max animate-[marquee_linear_infinite] group-hover:[animation-play-state:paused]"
+        className="flex w-max animate-[marquee_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none"
         style={{ animationDuration: `${speed}s` }}
       >
         <div className="flex shrink-0 items-center">{children}</div>
@@ -250,7 +250,7 @@ export function SplitButton({
     <a
       href={href}
       className={cn(
-        "group inline-flex items-stretch gap-px focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none",
+        "group inline-flex items-stretch gap-px focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
         className,
       )}
     >
