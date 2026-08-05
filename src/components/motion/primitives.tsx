@@ -46,6 +46,7 @@ export function MaskReveal({
         <span
           key={`${word}-${i}`}
           className="inline-block overflow-hidden align-bottom"
+          style={{ paddingBottom: "0.16em", marginBottom: "-0.16em" }}
         >
           <motion.span
             className="inline-block"
