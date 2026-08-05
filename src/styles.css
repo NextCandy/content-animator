@@ -211,6 +211,39 @@
   }
 }
 
+/*
+ * Reveal primitives.
+ * The resting state (no data-reveal attribute) is fully visible, so text is
+ * readable whenever the entrance never runs: hidden tab, prerender, failed
+ * script, paused animation frames. The hidden start state only exists while
+ * data-reveal="pending" is set by the client.
+ */
+[data-reveal] {
+  --reveal-y: 100%;
+  --reveal-duration: 420ms;
+  transition:
+    transform var(--reveal-duration) var(--ease-out),
+    opacity var(--reveal-duration) var(--ease-out);
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(var(--reveal-y));
+}
+
+[data-reveal="in"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 @keyframes caret {
   0%,
   49% {

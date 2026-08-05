@@ -25,7 +25,18 @@ const useLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffectRaw : useEffect;
 
 const EASE_OUT = [0, 0, 0.2, 1] as const;
-const EASE_CSS = "cubic-bezier(0, 0, 0.2, 1)";
+
+/**
+ * Entrances are only ever armed when the document is visible. A hidden tab
+ * (background tab, session restore, browser prerender) freezes rAF and
+ * animation frames, so arming there would leave copy stuck at its start
+ * state. Skipping the entrance keeps the CSS default — fully visible text.
+ */
+function canArmEntrance() {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "visible"
+  );
+}
 
 /** Reduced-motion query without depending on the Motion runtime. */
 function usePrefersReducedMotion() {
@@ -66,6 +77,12 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
       });
     };
 
+    // If the tab goes hidden mid-flight, rAF stops: show the copy immediately.
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") setInView(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     const check = () => {
       const rect = el.getBoundingClientRect();
       const bounds = root
@@ -79,6 +96,7 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
     };
     if (check()) {
       return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
         cancelAnimationFrame(raf1);
         cancelAnimationFrame(raf2);
       };
@@ -97,6 +115,7 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
 
     return () => {
       observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
       window.clearTimeout(timer);
@@ -171,6 +190,7 @@ export function LineReveal({
   // Arm the hidden state before the browser paints the measured lines.
   useLayoutEffect(() => {
     if (lines === null || reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, lines, reduce]);
 
@@ -211,13 +231,13 @@ export function LineReveal({
           style={{ paddingBottom: "0.16em", marginBottom: "-0.16em" }}
         >
           <span
+            data-reveal={armed ? (hidden ? "pending" : "in") : undefined}
             className="block will-change-transform"
             style={{
-              opacity: hidden ? 0 : 1,
-              transform: hidden ? "translateY(100%)" : "translateY(0)",
-              transition: `transform 420ms ${EASE_CSS}, opacity 420ms ${EASE_CSS}`,
+              ["--reveal-y" as string]: "100%",
+              ["--reveal-duration" as string]: "420ms",
               transitionDelay: `${delay * 1000 + i * 60}ms`,
-            }}
+            } as React.CSSProperties}
           >
             {line}
           </span>
@@ -255,6 +275,7 @@ export function Reveal({
 
   useLayoutEffect(() => {
     if (reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, reduce]);
 
@@ -266,14 +287,14 @@ export function Reveal({
       {...rest}
       ref={ref}
       className={className}
-      style={{
-        opacity: hidden ? 0 : 1,
-        transform: hidden ? `translateY(${y}px)` : "translateY(0)",
-        transition: reduce
-          ? undefined
-          : `transform 400ms ${EASE_CSS}, opacity 400ms ${EASE_CSS}`,
-        transitionDelay: `${delay * 1000}ms`,
-      }}
+      data-reveal={armed && !reduce ? (hidden ? "pending" : "in") : undefined}
+      style={
+        {
+          ["--reveal-y" as string]: `${y}px`,
+          ["--reveal-duration" as string]: "400ms",
+          transitionDelay: `${delay * 1000}ms`,
+        } as React.CSSProperties
+      }
     >
       {children}
     </Tagged>
@@ -303,6 +324,7 @@ export function FadeIn({
 
   useLayoutEffect(() => {
     if (reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, reduce]);
 
@@ -313,10 +335,15 @@ export function FadeIn({
       inner = requestAnimationFrame(() => setShown(true));
     });
     const timer = window.setTimeout(() => setShown(true), 1200);
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") setShown(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(inner);
       window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [armed, shown]);
 
@@ -326,14 +353,14 @@ export function FadeIn({
   return (
     <Tagged
       className={className}
-      style={{
-        opacity: hidden ? 0 : 1,
-        transform: hidden ? `translateY(${y}px)` : "translateY(0)",
-        transition: reduce
-          ? undefined
-          : `transform 500ms ${EASE_CSS}, opacity 500ms ${EASE_CSS}`,
-        transitionDelay: `${delay * 1000}ms`,
-      }}
+      data-reveal={armed && !reduce ? (hidden ? "pending" : "in") : undefined}
+      style={
+        {
+          ["--reveal-y" as string]: `${y}px`,
+          ["--reveal-duration" as string]: "500ms",
+          transitionDelay: `${delay * 1000}ms`,
+        } as React.CSSProperties
+      }
     >
       {children}
     </Tagged>
