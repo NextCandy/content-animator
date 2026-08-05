@@ -505,33 +505,3 @@ export function AsciiField({
     />
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/*  Back-compat shim so existing call sites keep working unchanged.            */
-/* -------------------------------------------------------------------------- */
-
-export function AsciiField({
-  color = "rgba(222, 222, 222, 0.42)",
-  density = 0.45,
-  className,
-  trackPointer = true,
-}: {
-  color?: string;
-  /** @deprecated kept for call-site compatibility; the field font is fixed. */
-  fontSize?: number;
-  /** @deprecated kept for call-site compatibility. */
-  seed?: number;
-  density?: number;
-  className?: string;
-  trackPointer?: boolean;
-}) {
-  return (
-    <VortexField
-      variant="field"
-      color={color}
-      density={density}
-      className={className}
-      trackPointer={trackPointer}
-    />
-  );
-}
