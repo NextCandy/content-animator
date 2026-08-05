@@ -51,7 +51,7 @@ function BlogPost() {
         </Reveal>
 
         <div className="mt-16 max-w-2xl space-y-7 border-t border-border pt-14">
-          {post.body.map((para, i) => (
+          {post.body.map((para: string, i: number) => (
             <Reveal key={i} delay={Math.min(i * 0.05, 0.3)}>
               <p className="text-[1.0625rem] leading-relaxed text-muted-foreground">
                 {para}
