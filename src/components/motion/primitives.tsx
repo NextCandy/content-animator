@@ -17,6 +17,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import type React from "react";
 import { cn } from "@/lib/utils";
 import { useScrollContainer } from "@/components/motion/scroll-container";
 
@@ -222,13 +223,14 @@ export function Reveal({
   delay = 0,
   y = 16,
   as: Tag = "div",
+  ...rest
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
   y?: number;
   as?: "div" | "li" | "p" | "span";
-}) {
+} & Omit<React.HTMLAttributes<HTMLElement>, "children" | "className">) {
   const reduce = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const [armed, setArmed] = useState(false);
@@ -244,6 +246,7 @@ export function Reveal({
 
   return (
     <Tagged
+      {...rest}
       ref={ref}
       className={className}
       style={{
