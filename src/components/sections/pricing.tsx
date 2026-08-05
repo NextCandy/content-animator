@@ -38,9 +38,9 @@ export function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-8% 0px" }}
               transition={{
-                duration: 0.7,
+                duration: 0.4,
                 delay: reduce ? 0 : i * 0.09,
-                ease: [0.16, 1, 0.3, 1],
+                ease: [0, 0, 0.2, 1],
               }}
               className="flex flex-col bg-ink p-8"
             >
@@ -78,7 +78,7 @@ export function Pricing() {
                     />
                     <button
                       type="submit"
-                      className="mono-label shrink-0 rounded-r-[var(--radius)] bg-ink-foreground px-5 py-4 text-ink transition-transform duration-500 hover:translate-x-1"
+                      className="mono-label shrink-0 rounded-r-[var(--radius)] bg-ink-foreground px-5 py-4 text-ink transition-transform duration-300 hover:translate-x-1"
                     >
                       Notify me
                     </button>

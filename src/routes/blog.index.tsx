@@ -44,7 +44,7 @@ function BlogIndex() {
                     {post.date} · {post.readingTime}
                   </span>
                   <span className="md:col-span-9">
-                    <span className="block text-2xl tracking-tight transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-2 md:text-4xl">
+                    <span className="block text-2xl tracking-tight transition-transform duration-300 ease-[cubic-bezier(0,0,0.2,1)] group-hover:translate-x-2 md:text-4xl">
                       {post.title}
                     </span>
                     <span className="mt-4 block max-w-2xl leading-relaxed text-muted-foreground">

@@ -38,7 +38,7 @@ export function Faq() {
                 transition={{
                   duration: 0.55,
                   delay: reduce ? 0 : (i % 4) * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
+                  ease: [0, 0, 0.2, 1],
                 }}
                 className="border-t border-border last:border-b"
               >
@@ -56,7 +56,7 @@ export function Faq() {
                   </span>
                   <span
                     className={cn(
-                      "mono-label shrink-0 transition-transform duration-500",
+                      "mono-label shrink-0 transition-transform duration-300",
                       expanded ? "rotate-45" : "rotate-0",
                     )}
                   >
@@ -66,7 +66,7 @@ export function Faq() {
                 <motion.div
                   initial={false}
                   animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
-                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.55, ease: [0, 0, 0.2, 1] }}
                   className="overflow-hidden"
                 >
                   <div className="max-w-3xl space-y-4 pb-8 md:pl-25">
