@@ -1,15 +1,9 @@
 import { useState } from "react";
-import {
-  motion,
-  useReducedMotion,
-  Reveal,
-  SplitButton,
-} from "@/components/motion/primitives";
+import { Reveal, SplitButton } from "@/components/motion/primitives";
 import { FAQS, STRIPE_URL } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
 export function Faq() {
-  const reduce = useReducedMotion();
   const [open, setOpen] = useState<number | null>(0);
 
   return (
@@ -30,23 +24,16 @@ export function Faq() {
           {FAQS.map((item, i) => {
             const expanded = open === i;
             return (
-              <motion.li
+              <li
                 key={item.q}
-                initial={{ opacity: 0, y: reduce ? 0 : 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-8% 0px" }}
-                transition={{
-                  duration: 0.55,
-                  delay: reduce ? 0 : (i % 4) * 0.05,
-                  ease: [0, 0, 0.2, 1],
-                }}
-                className="border-t border-border last:border-b"
+                data-active={expanded ? "true" : "false"}
+                className="group border-t border-border last:border-b"
               >
                 <button
                   type="button"
                   aria-expanded={expanded}
                   onClick={() => setOpen(expanded ? null : i)}
-                  className="flex w-full items-baseline gap-5 py-6 text-left"
+                  className="flex w-full items-baseline gap-5 py-6 text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                 >
                   <span className="mono-label w-20 shrink-0 text-muted-foreground">
                     Q.{String(i + 1).padStart(3, "0")} /
@@ -56,28 +43,29 @@ export function Faq() {
                   </span>
                   <span
                     className={cn(
-                      "mono-label shrink-0 transition-transform duration-300",
+                      "mono-label shrink-0 transition-transform duration-200 ease-out",
                       expanded ? "rotate-45" : "rotate-0",
                     )}
                   >
                     +
                   </span>
                 </button>
-                <motion.div
-                  initial={false}
-                  animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
-                  transition={{ duration: 0.55, ease: [0, 0, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="max-w-3xl space-y-4 pb-8 md:pl-25">
-                    {item.a.map((para) => (
-                      <p key={para.slice(0, 24)} className="leading-relaxed text-muted-foreground">
-                        {para}
-                      </p>
-                    ))}
+                {/* grid-rows 0fr → 1fr expand, 300ms ease-out */}
+                <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-data-[active=true]:grid-rows-[1fr] motion-reduce:transition-none">
+                  <div className="overflow-hidden">
+                    <div className="max-w-3xl space-y-4 pb-8 md:pl-25">
+                      {item.a.map((para) => (
+                        <p
+                          key={para.slice(0, 24)}
+                          className="leading-relaxed text-muted-foreground"
+                        >
+                          {para}
+                        </p>
+                      ))}
+                    </div>
                   </div>
-                </motion.div>
-              </motion.li>
+                </div>
+              </li>
             );
           })}
         </ul>
