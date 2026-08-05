@@ -25,7 +25,6 @@ const useLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffectRaw : useEffect;
 
 const EASE_OUT = [0, 0, 0.2, 1] as const;
-const EASE_CSS = "cubic-bezier(0, 0, 0.2, 1)";
 
 /**
  * Entrances are only ever armed when the document is visible. A hidden tab
