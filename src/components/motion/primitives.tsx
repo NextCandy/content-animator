@@ -18,8 +18,13 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 
-/** Word-by-word mask reveal, used for the big display headlines. */
-export function MaskReveal({
+const EASE_OUT = [0, 0, 0.2, 1] as const;
+
+/**
+ * Line-by-line mask reveal: measures the natural line breaks after layout,
+ * wraps each visual line in an overflow-hidden block and lifts it into place.
+ */
+export function LineReveal({
   text,
   className,
   delay = 0,
@@ -28,49 +33,109 @@ export function MaskReveal({
   text: string;
   className?: string;
   delay?: number;
-  as?: "h1" | "h2" | "h3" | "p";
+  as?: "h1" | "h2" | "h3" | "p" | "span" | "div";
 }) {
   const reduce = useReducedMotion();
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-10% 0px" });
+  const [lines, setLines] = useState<string[] | null>(null);
+  const [measureKey, setMeasureKey] = useState(0);
   const words = text.split(" ");
-  const MotionTag = motion[Tag];
+
+  useEffect(() => {
+    setLines(null);
+  }, [text]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setLines(null);
+      setMeasureKey((k) => k + 1);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (lines !== null) return;
+    const el = ref.current;
+    if (!el) return;
+    const spans = Array.from(
+      el.querySelectorAll<HTMLElement>("[data-line-word]"),
+    );
+    if (!spans.length) return;
+    const grouped: string[] = [];
+    let currentTop: number | null = null;
+    spans.forEach((span) => {
+      const top = Math.round(span.offsetTop);
+      const word = span.textContent?.trim() ?? "";
+      if (currentTop === null || Math.abs(top - currentTop) > 2) {
+        currentTop = top;
+        grouped.push(word);
+      } else {
+        grouped[grouped.length - 1] += ` ${word}`;
+      }
+    });
+    setLines(grouped);
+  }, [lines, measureKey, text]);
+
+  const Tagged = Tag as "h2";
+
+  if (reduce) {
+    return <Tagged className={className}>{text}</Tagged>;
+  }
+
+  if (lines === null) {
+    return (
+      <Tagged
+        className={className}
+        ref={ref as unknown as RefObject<HTMLHeadingElement>}
+        style={{ visibility: "hidden" }}
+      >
+        {words.map((word, i) => (
+          <span data-line-word key={`${word}-${i}`} className="inline-block">
+            {word}
+            {i < words.length - 1 ? "\u00A0" : ""}
+          </span>
+        ))}
+      </Tagged>
+    );
+  }
 
   return (
-    <MotionTag
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-12% 0px" }}
-      transition={{ staggerChildren: reduce ? 0 : 0.035, delayChildren: delay }}
-    >
-      {words.map((word, i) => (
+    <Tagged className={className} ref={ref as unknown as RefObject<HTMLHeadingElement>}>
+      {lines.map((line, i) => (
         <span
-          key={`${word}-${i}`}
-          className="inline-block overflow-hidden align-bottom"
+          key={`${line}-${i}`}
+          className="block overflow-hidden"
           style={{ paddingBottom: "0.16em", marginBottom: "-0.16em" }}
         >
           <motion.span
-            className="inline-block"
-            variants={{
-              hidden: { y: reduce ? 0 : "110%", opacity: reduce ? 0 : 1 },
-              visible: { y: "0%", opacity: 1 },
+            className="block"
+            initial={{ y: "100%", opacity: 0 }}
+            animate={inView ? { y: "0%", opacity: 1 } : undefined}
+            transition={{
+              duration: 0.42,
+              ease: EASE_OUT,
+              delay: delay + i * 0.06,
             }}
-            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           >
-            {word}
-            {i < words.length - 1 ? "\u00A0" : ""}
+            {line}
           </motion.span>
         </span>
       ))}
-    </MotionTag>
+    </Tagged>
   );
 }
+
+/** Back-compat alias: existing call sites import MaskReveal. */
+export const MaskReveal = LineReveal;
 
 /** Generic in-view fade + lift, with optional index-based stagger. */
 export function Reveal({
   children,
   className,
   delay = 0,
-  y = 24,
+  y = 16,
 }: {
   children: ReactNode;
   className?: string;
@@ -84,7 +149,7 @@ export function Reveal({
       initial={{ opacity: 0, y: reduce ? 0 : y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-8% 0px" }}
-      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, delay, ease: EASE_OUT }}
     >
       {children}
     </motion.div>
