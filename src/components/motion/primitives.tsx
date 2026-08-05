@@ -112,7 +112,7 @@ export function LineReveal({
           <motion.span
             className="block"
             initial={{ y: "100%", opacity: 0 }}
-            animate={inView ? { y: "0%", opacity: 1 } : undefined}
+            animate={inView ? { y: "0%", opacity: 1 } : { y: "100%", opacity: 0 }}
             transition={{
               duration: 0.42,
               ease: EASE_OUT,
