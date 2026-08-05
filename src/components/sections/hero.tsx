@@ -8,13 +8,17 @@ import {
   SplitButton,
   Marquee,
 } from "@/components/motion/primitives";
+import { useScrollContainer } from "@/components/motion/scroll-container";
 import { STRIPE_URL, TICKER_ITEMS } from "@/lib/site-data";
 
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
+  const container = useScrollContainer();
+  const fallback = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
+    container: container ?? fallback,
     offset: ["start start", "end start"],
   });
   const panelWidth = useTransform(scrollYProgress, [0, 1], ["50%", "100%"]);
@@ -36,7 +40,7 @@ export function Hero() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0, 0, 0.2, 1] }}
             className="mono-label text-foreground"
           >
             Built for agentic development.
@@ -52,7 +56,7 @@ export function Hero() {
           <motion.p
             initial={{ opacity: 0, y: reduce ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, delay: 0.55, ease: [0, 0, 0.2, 1] }}
             className="mt-10 max-w-xl text-[1.0625rem] leading-relaxed text-muted-foreground"
           >
             Every run invents a new one, none decided. This Next.js and Sanity kit
@@ -63,7 +67,7 @@ export function Hero() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
+            transition={{ duration: 0.5, delay: 0.3, ease: [0, 0, 0.2, 1] }}
             className="mono-label mt-8 text-muted-foreground"
           >
             For engineers who work in Next.js and Sanity.
@@ -72,7 +76,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0, y: reduce ? 0 : 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, delay: 0.85, ease: [0, 0, 0.2, 1] }}
             className="mt-10"
           >
             <SplitButton label="Get" sublabel="access" href={STRIPE_URL} />

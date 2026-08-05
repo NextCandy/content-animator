@@ -28,9 +28,9 @@ export function Problems() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10% 0px" }}
               transition={{
-                duration: 0.6,
+                duration: 0.4,
                 delay: reduce ? 0 : i * 0.045,
-                ease: [0.16, 1, 0.3, 1],
+                ease: [0, 0, 0.2, 1],
               }}
               onMouseEnter={() => setHovered(p.n)}
               onMouseLeave={() => setHovered(null)}

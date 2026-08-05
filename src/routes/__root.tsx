@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { ScrollContainer } from "@/components/motion/scroll-container";
 
 function NotFoundComponent() {
   return (
@@ -142,12 +143,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SiteNav />
-      <main>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </main>
-      <SiteFooter />
+      <ScrollContainer>
+        <SiteNav />
+        <main>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </main>
+        <SiteFooter />
+      </ScrollContainer>
     </QueryClientProvider>
   );
 }

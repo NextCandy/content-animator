@@ -34,14 +34,14 @@ export function Showcase() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-8% 0px" }}
               transition={{
-                duration: 0.65,
+                duration: 0.4,
                 delay: reduce ? 0 : (i % 3) * 0.07,
-                ease: [0.16, 1, 0.3, 1],
+                ease: [0, 0, 0.2, 1],
               }}
               className="group relative bg-background p-6 transition-colors duration-300 hover:bg-ink"
             >
               <div className="aspect-16/9 w-full overflow-hidden rounded-[6px] bg-accent">
-                <div className="size-full origin-center bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(0_0_0/0.05)_10px_20px)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105" />
+                <div className="size-full origin-center bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(0_0_0/0.05)_10px_20px)] transition-transform duration-300 ease-[cubic-bezier(0,0,0.2,1)] group-hover:scale-105" />
               </div>
               <div className="mt-5 flex items-baseline justify-between">
                 <span className="text-lg tracking-tight transition-colors group-hover:text-ink-foreground">
@@ -60,7 +60,7 @@ export function Showcase() {
             <motion.div
               className="flex"
               animate={{ x: `-${slide * 100}%` }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.4, ease: [0, 0, 0.2, 1] }}
             >
               {TESTIMONIALS.map((t) => (
                 <figure key={t.name} className="w-full shrink-0 pr-8">
@@ -101,7 +101,7 @@ export function Showcase() {
                 <span
                   key={t.name}
                   className={cn(
-                    "h-px w-8 transition-colors duration-500",
+                    "h-px w-8 transition-colors duration-300",
                     i === slide ? "bg-foreground" : "bg-border",
                   )}
                 />
