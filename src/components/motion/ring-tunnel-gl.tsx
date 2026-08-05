@@ -155,7 +155,7 @@ function compile(gl: WebGL2RenderingContext, type: number, src: string) {
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error(gl.getShaderInfoLog(shader));
+    console.warn(gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
   }
@@ -167,6 +167,7 @@ export interface RingTunnelGLProps {
   color?: string;
   holding?: boolean;
   onHoldComplete?: () => void;
+  onUnavailable?: () => void;
   trackPointer?: boolean;
 }
 
@@ -175,6 +176,7 @@ export function RingTunnelGL({
   color = RING_COLOR,
   holding = false,
   onHoldComplete,
+  onUnavailable,
   trackPointer = true,
 }: RingTunnelGLProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -214,26 +216,36 @@ export function RingTunnelGL({
       premultipliedAlpha: true,
       powerPreference: "low-power",
     });
-    if (!gl) return;
+    if (!gl) {
+      onUnavailable?.();
+      return;
+    }
 
     const s = state.current;
 
     const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC);
     const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG_SRC);
     const program = vs && fs ? gl.createProgram() : null;
-    if (!vs || !fs || !program) return;
+    if (!vs || !fs || !program) {
+      onUnavailable?.();
+      return;
+    }
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
     gl.deleteShader(vs);
     gl.deleteShader(fs);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(program));
+      console.warn(gl.getProgramInfoLog(program));
+      onUnavailable?.();
       return;
     }
 
     const strip = buildStrip();
-    if (!strip) return;
+    if (!strip) {
+      onUnavailable?.();
+      return;
+    }
 
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -321,8 +333,7 @@ export function RingTunnelGL({
 
       s.clock += dt;
       const swellTarget = s.holding ? 1 : 0;
-      const swellStep =
-        (dt * 1000) / (swellTarget > s.swell ? SWELL_RISE_MS : SWELL_FALL_MS);
+      const swellStep = (dt * 1000) / (swellTarget > s.swell ? SWELL_RISE_MS : SWELL_FALL_MS);
       s.swell =
         swellTarget > s.swell
           ? Math.min(swellTarget, s.swell + swellStep)
@@ -363,6 +374,7 @@ export function RingTunnelGL({
     const onLost = (e: Event) => {
       e.preventDefault();
       cancelAnimationFrame(raf);
+      onUnavailable?.();
     };
     canvas.addEventListener("webglcontextlost", onLost);
 
@@ -384,7 +396,7 @@ export function RingTunnelGL({
       gl.deleteVertexArray(vao);
       gl.deleteProgram(program);
     };
-  }, [color, onHoldComplete, reduced, trackPointer]);
+  }, [color, onHoldComplete, onUnavailable, reduced, trackPointer]);
 
   /* ----------------------------- pointer tracking -------------------------- */
 

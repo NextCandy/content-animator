@@ -1,171 +1,229 @@
-import { useRef, useState } from "react";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-  Reveal,
-  Marquee,
-} from "@/components/motion/primitives";
-import { AsciiField } from "@/components/motion/ascii-field";
-import { useScrollContainer } from "@/components/motion/scroll-container";
+import { useEffect, useRef, useState } from "react";
+import { MaskReveal } from "@/components/motion/primitives";
+import { AsciiImageCurtain } from "@/components/motion/glyph-field";
 import { SHOWCASE, TESTIMONIALS } from "@/lib/site-data";
-import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/components/motion/vortex-shared";
 
 /**
- * One showcase card: an ASCII canvas masks the real content until the card is
- * hovered (500ms ease-out dissolve) or clicked/tapped, which sets
- * data-active="true" so the reveal sticks. Clicking again toggles it back.
+ * The reference uses a live ASCII veil as the first state of every project
+ * card. Hovering reveals the card and clicking keeps it open on touch devices.
  */
-function ShowcaseCard({ site, index }: { site: { name: string; url: string }; index: number }) {
+function ShowcaseCard({ site }: { site: { name: string; url: string; image: string } }) {
   const [active, setActive] = useState(false);
 
   return (
-    <div
+    <article
       data-active={active ? "true" : "false"}
-      className="group relative bg-background"
+      className="group relative bg-ink"
+      onPointerDown={() => setActive(true)}
     >
-      <button
-        type="button"
-        aria-pressed={active}
-        onClick={() => setActive((a) => !a)}
-        className="block w-full cursor-pointer p-6 text-left select-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-      >
-        <div className="aspect-16/9 w-full overflow-hidden rounded-[6px] bg-ink">
-          <div className="size-full origin-center bg-[repeating-linear-gradient(135deg,transparent_0_10px,rgb(255_255_255/0.06)_10px_20px)] opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 group-data-[active=true]:opacity-100 motion-reduce:transition-none" />
-        </div>
-        <div className="mt-5 flex items-baseline justify-between">
-          <span className="text-lg tracking-tight opacity-40 transition-opacity duration-500 ease-out group-hover:opacity-100 group-data-[active=true]:opacity-100 motion-reduce:opacity-100 motion-reduce:transition-none">
-            {site.name}
-          </span>
-          <span className="mono-label text-muted-foreground">
-            {String(index + 1).padStart(3, "0")}
-          </span>
-        </div>
-      </button>
-
-      {/* ASCII mask sitting above the card content. */}
-      <div className="pointer-events-none absolute inset-0 size-full bg-ink transition-opacity [transition-property:opacity] duration-500 ease-out group-hover:opacity-0 group-data-[active=true]:opacity-0 motion-reduce:hidden motion-reduce:transition-none">
-        <AsciiField color="rgba(255,255,255,0.1)" fontSize={11} density={0.006} />
-      </div>
-
       <a
         href={site.url}
         target="_blank"
         rel="noreferrer"
-        tabIndex={active ? 0 : -1}
-        className="mono-label absolute right-6 bottom-6 z-1 opacity-0 transition-opacity duration-200 ease-out group-data-[active=true]:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        className="block cursor-pointer select-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       >
-        Visit ↗
+        <div className="relative mb-3 aspect-16/9 w-full overflow-hidden bg-black">
+          <AsciiImageCurtain src={site.image} alt={`${site.name} website`} />
+          <img
+            src={site.image}
+            alt={`${site.name} website built on The Content Architecture`}
+            loading="lazy"
+            decoding="async"
+            className="pointer-events-none absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 group-data-[active=true]:opacity-100 motion-reduce:transition-none"
+          />
+        </div>
+        <h3 className="font-mono text-caption-20 text-ink-muted uppercase transition-colors duration-500 ease-out group-hover:text-ink-foreground group-data-[active=true]:text-ink-foreground motion-reduce:transition-none">
+          {site.name}
+        </h3>
       </a>
-    </div>
+    </article>
+  );
+}
+
+function TypewriterQuote({ text, resetKey }: { text: string; resetKey: number }) {
+  const reduced = usePrefersReducedMotion();
+  const hostRef = useRef<HTMLSpanElement>(null);
+  const [count, setCount] = useState(reduced ? text.length : 0);
+
+  useEffect(() => {
+    if (reduced) {
+      setCount(text.length);
+      return;
+    }
+    setCount(0);
+    let index = 0;
+    let timer = 0;
+    const start = () => {
+      if (timer) return;
+      timer = window.setInterval(() => {
+        index += 1;
+        setCount(index);
+        if (index >= text.length) window.clearInterval(timer);
+      }, 16);
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) start();
+      },
+      { threshold: 0.1 },
+    );
+    if (hostRef.current) observer.observe(hostRef.current);
+    return () => {
+      if (timer) window.clearInterval(timer);
+      observer.disconnect();
+    };
+  }, [reduced, resetKey, text]);
+
+  return (
+    <>
+      <span className="sr-only">“{text}”</span>
+      <span ref={hostRef} aria-hidden className="whitespace-pre-wrap">
+        <span>“{text.slice(0, count)}</span>
+        {!reduced && count < text.length && (
+          <span className="relative inline">
+            <span className="absolute top-[0.1em] left-0 inline-block h-[1.05em] w-[0.1em] animate-cursor-blink bg-current" />
+          </span>
+        )}
+        <span className="text-transparent">{text.slice(count)}”</span>
+      </span>
+    </>
   );
 }
 
 export function Showcase() {
-  const reduce = useReducedMotion();
   const [slide, setSlide] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-  const container = useScrollContainer();
-  const fallback = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    container: container ?? fallback,
-    offset: ["start start", "end end"],
-  });
-  const gridY = useTransform(scrollYProgress, [0.05, 0.85], ["0%", "-62%"]);
   const total = TESTIMONIALS.length;
 
   return (
-    <section
-      id="showcase"
-      ref={sectionRef}
-      className="relative scroll-mt-24 py-28 lg:h-[350svh] lg:py-0"
-    >
-      <div className="mx-auto max-w-[1400px] px-6 md:px-10 lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:overflow-hidden lg:py-[10svh]">
-        <Reveal>
-          <p className="mono-label text-muted-foreground">Showcase</p>
-          <h2 className="display-title mt-6 max-w-3xl text-[clamp(1.9rem,3.4vw,3rem)]">
-            Client work shipped on this architecture.
-          </h2>
-        </Reveal>
-
-        <div className="mt-10 lg:max-h-[52svh] lg:overflow-hidden">
-          <motion.div
-            style={{ y: reduce ? "0%" : gridY }}
-            className="grid gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {SHOWCASE.map((site, i) => (
-              <ShowcaseCard key={site.name} site={site} index={i} />
-            ))}
-          </motion.div>
-        </div>
-      </div>
-
-      <div id="reviews" className="mx-auto max-w-[1400px] scroll-mt-24 overflow-x-clip px-6 md:px-10">
-        <div className="mt-24 border-t border-border pt-14 lg:mt-0">
-          <Marquee speed={46} className="mb-12 opacity-70">
-            {TESTIMONIALS.concat(TESTIMONIALS).map((t, i) => (
-              <span key={i} className="mono-label px-6 text-muted-foreground">
-                {t.name} — {t.role}
-              </span>
-            ))}
-          </Marquee>
-          <div className="overflow-hidden" ref={trackRef}>
-            <motion.div
-              className="flex"
-              animate={{ x: `-${slide * 100}%` }}
-              transition={{ duration: 0.4, ease: [0, 0, 0.2, 1] }}
+    <>
+      <section
+        id="showcase"
+        className="bg-ink px-6 py-28 text-ink-foreground md:px-10 lg:px-20 lg:py-40"
+      >
+        <div className="mb-20 flex flex-col gap-4">
+          <MaskReveal
+            as="h2"
+            text="The work that gets remembered."
+            className="display-title text-headline-10"
+          />
+          <div className="text-body-20 w-full max-w-[600px] text-ink-foreground/75">
+            Real sites, shipped on The Content Architecture. With the plumbing already handled, the
+            effort goes where it shows. The work here has been recognized by{" "}
+            <a
+              className="underline decoration-ink-muted underline-offset-4"
+              href="https://www.awwwards.com/"
+              target="_blank"
+              rel="noreferrer"
             >
-              {TESTIMONIALS.map((t) => (
-                <figure key={t.name} className="w-full shrink-0 pr-8">
-                  <blockquote className="display-title max-w-4xl text-[clamp(1.35rem,2.6vw,2.25rem)] leading-tight">
-                    “{t.quote}”
-                  </blockquote>
-                  <figcaption className="mono-label mt-8 flex items-center gap-4 text-muted-foreground">
-                    <span className="size-8 rounded-full bg-accent" />
-                    {t.name} — {t.role}
-                  </figcaption>
-                </figure>
+              Awwwards
+            </a>
+            ,{" "}
+            <a
+              className="underline decoration-ink-muted underline-offset-4"
+              href="https://thefwa.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              FWA
+            </a>
+            , and{" "}
+            <a
+              className="underline decoration-ink-muted underline-offset-4"
+              href="https://www.cssdesignawards.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              CSSDA
+            </a>
+            , and picked up across design directories.
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-y-16 sm:grid-cols-2 sm:gap-x-6">
+          {SHOWCASE.map((site) => (
+            <ShowcaseCard key={site.name} site={site} />
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="reviews"
+        className="min-h-[720px] overflow-x-clip bg-ink py-[72px] text-ink-foreground lg:pb-[160px]"
+      >
+        <div className="relative">
+          <div className="cursor-grab overflow-hidden active:cursor-grabbing">
+            <div
+              className="flex items-stretch gap-4 will-change-transform"
+              style={{
+                transform: `translate3d(-${slide * 56.2658}%, 0, 0)`,
+                transition: "transform 500ms cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+            >
+              {TESTIMONIALS.map((t, index) => (
+                <div
+                  key={t.name}
+                  className="min-w-0 shrink-0 grow-0 select-none basis-[calc(90%+16px)] pl-0 first:basis-[calc(90%+16px)] first:pl-4 last:pr-4 md:basis-[55%] md:first:basis-[calc(55%+80px)] md:first:pl-20 md:last:basis-[calc(55%+80px)] md:last:pr-20"
+                >
+                  <div
+                    className="h-full rounded-lg bg-black p-2 shadow-lg ring-1 ring-black"
+                    style={{
+                      backgroundImage:
+                        "repeating-conic-gradient(rgb(255 255 255 / 0.22) 0% 25%, transparent 0% 50%)",
+                      backgroundSize: "4px 4px",
+                    }}
+                  >
+                    <figure className="flex h-full min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-[4px] bg-black p-6 ring-1 ring-white/10 md:min-h-[460px] md:gap-12 md:p-12">
+                      <blockquote className="review-quote">
+                        <TypewriterQuote text={t.quote} resetKey={slide + index} />
+                      </blockquote>
+                      <figcaption className="flex items-center gap-4">
+                        <img
+                          src={t.avatar}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="size-12 shrink-0 rounded-full object-cover ring-1 ring-white/15"
+                        />
+                        <div className="min-w-0 flex-1 font-mono text-caption-10 uppercase">
+                          <p className="truncate text-ink-foreground">{t.name}</p>
+                          <p className="truncate text-ink-muted">{t.role}</p>
+                        </div>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
 
-          <div className="mt-10 flex items-center gap-4">
+          <div className="mt-12 flex items-center justify-center gap-4 md:mt-16">
             <button
               type="button"
-              onClick={() => setSlide((s) => (s - 1 + total) % total)}
-              aria-label="Previous testimonial"
-              className="mono-label rounded-[6px] border border-border px-3 py-2 transition-colors hover:bg-ink hover:text-ink-foreground"
+              disabled={slide === 0}
+              onClick={() => setSlide((value) => Math.max(0, value - 1))}
+              aria-label="Previous slide"
+              className="flex size-11 items-center justify-center font-mono text-body-20 leading-none text-ink-foreground/50 transition-colors hover:text-ink-foreground disabled:pointer-events-none disabled:text-ink-foreground/15 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
               [&lt;]
             </button>
+            <p className="min-w-14 text-center font-mono text-caption-10 text-ink-muted tabular-nums">
+              <span className="text-ink-foreground">{String(slide + 1).padStart(2, "0")}</span>
+              <span className="px-1 text-ink-foreground/30">/</span>
+              {String(total).padStart(2, "0")}
+            </p>
             <button
               type="button"
-              onClick={() => setSlide((s) => (s + 1) % total)}
-              aria-label="Next testimonial"
-              className="mono-label rounded-[6px] border border-border px-3 py-2 transition-colors hover:bg-ink hover:text-ink-foreground"
+              disabled={slide === total - 1}
+              onClick={() => setSlide((value) => Math.min(total - 1, value + 1))}
+              aria-label="Next slide"
+              className="flex size-11 items-center justify-center font-mono text-body-20 leading-none text-ink-foreground/50 transition-colors hover:text-ink-foreground disabled:pointer-events-none disabled:text-ink-foreground/15 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
               [&gt;]
             </button>
-            <span className="mono-label text-muted-foreground">
-              {String(slide + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-            </span>
-            <span className="ml-auto flex gap-1.5">
-              {TESTIMONIALS.map((t, i) => (
-                <span
-                  key={t.name}
-                  className={cn(
-                    "h-px w-8 transition-colors duration-300",
-                    i === slide ? "bg-foreground" : "bg-border",
-                  )}
-                />
-              ))}
-            </span>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

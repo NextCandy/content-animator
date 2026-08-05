@@ -192,9 +192,7 @@ export function VortexField({
         const idx = row * s.cols + col;
         if (!s.cells[idx]) continue;
         const nx = s.cols > 1 ? col / (s.cols - 1) : 0;
-        const horizontal = cloud
-          ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER))
-          : 1;
+        const horizontal = cloud ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER)) : 1;
         if (Math.random() > density * vertical * horizontal) s.cells[idx] = "";
       }
     }
@@ -229,10 +227,7 @@ export function VortexField({
     /* ------------------------------ ring tunnel ---------------------------- */
 
     const drawRings = () => {
-      const maxR = Math.hypot(
-        Math.max(s.cx, s.w - s.cx),
-        Math.max(s.cy, s.h - s.cy),
-      );
+      const maxR = Math.hypot(Math.max(s.cx, s.w - s.cx), Math.max(s.cy, s.h - s.cy));
       const frac = s.zoom % RING_GROWTH;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -242,10 +237,7 @@ export function VortexField({
         if (r > maxR * 1.25) break;
         if (r < 3) continue;
 
-        const font = Math.min(
-          RING_MAX_FONT,
-          Math.max(RING_MIN_FONT, r * RING_FONT_RATIO),
-        );
+        const font = Math.min(RING_MAX_FONT, Math.max(RING_MIN_FONT, r * RING_FONT_RATIO));
         if (font < RING_MIN_FONT) continue;
 
         // Fade newborn rings in at the centre and old rings out at the edge.
@@ -440,9 +432,7 @@ function writePhrase(s: {
   for (let i = 0; i < phrase.length && start + i < s.cols; i++) {
     const col = start + i;
     const nx = s.cols > 1 ? col / (s.cols - 1) : 0;
-    const horizontal = s.cloud
-      ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER))
-      : 1;
+    const horizontal = s.cloud ? Math.min(1, Math.max(0, (nx - CLOUD_LEFT) / CLOUD_FEATHER)) : 1;
     s.cells[row * s.cols + col] =
       Math.random() > s.density * vertical * horizontal ? "" : phrase[i]!;
   }
@@ -460,6 +450,7 @@ const LABEL_DONE = "Release";
 export function VortexPanel({ className }: { className?: string }) {
   const [holding, setHolding] = useState(false);
   const [done, setDone] = useState(false);
+  const [webglFailed, setWebglFailed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const reduced = usePrefersReducedMotion();
@@ -515,10 +506,11 @@ export function VortexPanel({ className }: { className?: string }) {
       <div className="absolute inset-0">
         {/* The reference pins the vortex to the panel centre; only the chip
             follows the cursor. */}
-        {supportsWebGL2() ? (
+        {supportsWebGL2() && !webglFailed ? (
           <RingTunnelGL
             holding={holding}
             onHoldComplete={onComplete}
+            onUnavailable={() => setWebglFailed(true)}
             trackPointer={false}
           />
         ) : (
@@ -578,7 +570,7 @@ export function AsciiField({
       color={color}
       density={density}
       cloud={cloud}
-      className={className}
+      {...(className === undefined ? {} : { className })}
       trackPointer={trackPointer}
     />
   );

@@ -80,9 +80,9 @@ export const FEATURES = [
 ];
 
 export const README_LINES = [
-  "# The Content Architecture",
+  "# The Content Architecture (Next.js)",
   "",
-  "A modern Next.js 16 starter with Sanity CMS integration.",
+  "A modern Next.js 16.3 starter with Sanity CMS integration.",
   "",
   "## Features",
   "",
@@ -107,15 +107,61 @@ export const README_LINES = [
 ];
 
 export const SHOWCASE = [
-  { name: "Aspen Search", url: "https://www.aspensearch.com/" },
-  { name: "Anuc Home", url: "https://www.anuchome.com/" },
-  { name: "Edoardo Lunardi", url: "https://www.edoardolunardi.dev/" },
-  { name: "Serve Robotics", url: "https://www.serverobotics.com/" },
-  { name: "Muralia", url: "https://www.muralia.at/" },
-  { name: "blink", url: "https://www.blink.trade/" },
-  { name: "WASL", url: "https://www.waslarchitects.com/" },
-  { name: "Creative Lives in Progress", url: "https://creativelivesinprogress.com/" },
-  { name: "This site :D", url: "https://www.contentarchitecture.dev/" },
+  {
+    name: "Good Fella",
+    url: "https://good-fella.com/",
+    image: "/showcase/good-fella.jpg",
+  },
+  {
+    name: "House of Honey",
+    url: "https://www.houseofhoney.com/",
+    image: "/showcase/house-of-honey.jpg",
+  },
+  {
+    name: "Aspen Search",
+    url: "https://www.aspensearch.com/",
+    image: "/showcase/aspen-search.jpg",
+  },
+  {
+    name: "Anuc Home",
+    url: "https://www.anuchome.com/",
+    image: "/showcase/anuc-home.jpg",
+  },
+  {
+    name: "Edoardo Lunardi",
+    url: "https://www.edoardolunardi.dev/",
+    image: "/showcase/edoardo-lunardi.jpg",
+  },
+  {
+    name: "Serve Robotics",
+    url: "https://www.serverobotics.com/",
+    image: "/showcase/serve-robotics.jpg",
+  },
+  {
+    name: "Muralia",
+    url: "https://www.muralia.at/",
+    image: "/showcase/muralia.jpg",
+  },
+  {
+    name: "blink",
+    url: "https://www.blink.trade/",
+    image: "/showcase/blink.jpg",
+  },
+  {
+    name: "WASL",
+    url: "https://www.waslarchitects.com/",
+    image: "/showcase/wasl.jpg",
+  },
+  {
+    name: "Creative Lives in Progress",
+    url: "https://creativelivesinprogress.com/",
+    image: "/showcase/creative-lives.jpg",
+  },
+  {
+    name: "This site :D",
+    url: "https://www.contentarchitecture.dev/",
+    image: "/showcase/this-site.png",
+  },
 ];
 
 export const TESTIMONIALS = [
@@ -124,18 +170,21 @@ export const TESTIMONIALS = [
       "We shipped the Good Fella site on an early version and it saved us tons of time. Six months in, we're still building pages and sections in an afternoon without fighting the setup.",
     name: "Julian Fella",
     role: "Co-Founder, Good Fella",
+    avatar: "/avatars/julian.jpg",
   },
   {
     quote:
       "Edo and I ran a client project on this together. The plumbing was already handled, so the week we'd normally lose to setup went into the creative work the client actually remembers.",
     name: "Elliott Mangham",
     role: "Founder & Frontend Engineer",
+    avatar: "/avatars/elliott.png",
   },
   {
     quote:
       "I opened the fetch layer and found the revalidation problem I'd burned two days on last project, already solved and committed. That one folder paid for the whole thing, and the rest is six years of decisions I'd have made the slow way.",
     name: "Malik Kotb",
     role: "Web Designer & Engineer",
+    avatar: "/avatars/malik.jpg",
   },
 ];
 
@@ -145,28 +194,19 @@ export const PLANS = [
     price: "€549",
     was: "€549",
     status: "available" as const,
-    points: [
-      "THE NEXT.JS 16 + SANITY V6 REPO",
-      "FOR NEXT.JS + SANITY ENGINEERS, NOT NO-CODE",
-    ],
+    points: ["THE NEXT.JS 16 + SANITY V6 REPO", "FOR NEXT.JS + SANITY ENGINEERS, NOT NO-CODE"],
   },
   {
     name: "Astro",
     price: "Soon",
     status: "soon" as const,
-    points: [
-      "THE ASTRO 7 + SANITY V6 REPO",
-      "FOR ASTRO + SANITY ENGINEERS, NOT NO-CODE",
-    ],
+    points: ["THE ASTRO 7 + SANITY V6 REPO", "FOR ASTRO + SANITY ENGINEERS, NOT NO-CODE"],
   },
   {
     name: "Next.js + Astro",
     price: "Soon",
     status: "soon" as const,
-    points: [
-      "BOTH REPOS, NEXT.JS AND ASTRO",
-      "FOR NEXT.JS + ASTRO ENGINEERS, NOT NO-CODE",
-    ],
+    points: ["BOTH REPOS, NEXT.JS AND ASTRO", "FOR NEXT.JS + ASTRO ENGINEERS, NOT NO-CODE"],
   },
 ];
 
@@ -185,7 +225,9 @@ export const INCLUDED = [
 export const FAQS = [
   {
     q: "What stack is this built on?",
-    a: ["Next.js 16 with the App Router and React Compiler, Sanity v6, TypeScript in strict mode, Tailwind 4, and Biome for lint and format. Deploys on Vercel out of the box, and runs on Cloudflare via OpenNext."],
+    a: [
+      "Next.js 16 with the App Router and React Compiler, Sanity v6, TypeScript in strict mode, Tailwind 4, and Biome for lint and format. Deploys on Vercel out of the box, and runs on Cloudflare via OpenNext.",
+    ],
   },
   {
     q: "Does it work with Claude Code and Cursor?",
@@ -196,7 +238,9 @@ export const FAQS = [
   },
   {
     q: "Is the shipped site agent-ready too?",
-    a: ["Yes. Every site built on this ships with an editable llms.txt, drafted from your content with Sanity Agent Actions from the Site document, and a token-light Markdown version of every page and article, served on the same URL to any agent that sends Accept: text/markdown. You generate it per page in Studio, review it, and it is served verbatim. Your client's site is readable by assistants and agentic crawlers on day one, a line item you can put in your own proposal."],
+    a: [
+      "Yes. Every site built on this ships with an editable llms.txt, drafted from your content with Sanity Agent Actions from the Site document, and a token-light Markdown version of every page and article, served on the same URL to any agent that sends Accept: text/markdown. You generate it per page in Studio, review it, and it is served verbatim. Your client's site is readable by assistants and agentic crawlers on day one, a line item you can put in your own proposal.",
+    ],
   },
   {
     q: "Am I locked into this exact stack?",
@@ -207,31 +251,69 @@ export const FAQS = [
   },
   {
     q: "Do I need to know Sanity?",
-    a: ["Some, yes. This is a real codebase, not a no-code template. You should be comfortable in a Sanity schema file and a Next.js project. If you are, you will feel at home in minutes. If you have never opened a schema, the article series is the best place to start before deciding."],
+    a: [
+      "Some, yes. This is a real codebase, not a no-code template. You should be comfortable in a Sanity schema file and a Next.js project. If you are, you will feel at home in minutes. If you have never opened a schema, the article series is the best place to start before deciding.",
+    ],
   },
   {
     q: "Is this for me if I don't code?",
-    a: ["No, and I'd rather tell you here than take your money. This is a real Next.js and Sanity codebase, not a no-code tool: no visual page builder, no drag-and-drop editor. You clone the repo and write real code on top of it. If you don't work in Next.js and Sanity, it isn't for you."],
+    a: [
+      "No, and I'd rather tell you here than take your money. This is a real Next.js and Sanity codebase, not a no-code tool: no visual page builder, no drag-and-drop editor. You clone the repo and write real code on top of it. If you don't work in Next.js and Sanity, it isn't for you.",
+    ],
   },
   {
     q: "Can I use this for client work?",
-    a: ["Yes. Unlimited projects, commercial use, no attribution required. Use it on every client site you ship. The one thing you cannot do is resell the architecture itself as a competing product."],
+    a: [
+      "Yes. Unlimited projects, commercial use, no attribution required. Use it on every client site you ship. The one thing you cannot do is resell the architecture itself as a competing product.",
+    ],
   },
   {
     q: "How is this different from other boilerplates?",
-    a: ["Most boilerplates give you a pile of features. This gives you decisions. Every hard call, document modeling, the fetch layer, revalidation, the link and media fields, was made once over six years and committed. It is opinionated on purpose, and it is the architecture I ship my own client work on, not a side project cleaned up for sale."],
+    a: [
+      "Most boilerplates give you a pile of features. This gives you decisions. Every hard call, document modeling, the fetch layer, revalidation, the link and media fields, was made once over six years and committed. It is opinionated on purpose, and it is the architecture I ship my own client work on, not a side project cleaned up for sale.",
+    ],
   },
   {
     q: "Why not just use a free Sanity starter?",
-    a: ["A free starter gets you a clean install and the easy parts. What it leaves you is the work that actually costs the days: a page builder with guardrails, the fetch layer and revalidation, the link and media fields, a Studio structure your editors don't email you about. Those decisions are still yours to make on every project. Here they're already made, over six years of real client work, and committed. You're not paying for code you could scaffold in an afternoon. You're paying to skip the part nobody quotes for."],
+    a: [
+      "A free starter gets you a clean install and the easy parts. What it leaves you is the work that actually costs the days: a page builder with guardrails, the fetch layer and revalidation, the link and media fields, a Studio structure your editors don't email you about. Those decisions are still yours to make on every project. Here they're already made, over six years of real client work, and committed. You're not paying for code you could scaffold in an afternoon. You're paying to skip the part nobody quotes for.",
+    ],
   },
   {
     q: "Will it break on Next.js updates?",
-    a: ["This is my daily driver, so I keep it current. Next.js majors, Sanity migrations, breaking plugin changes, I handle them and push the update. Your license includes every update for as long as I maintain it, which is for as long as I am using it myself."],
+    a: [
+      "This is my daily driver, so I keep it current. Next.js majors, Sanity migrations, breaking plugin changes, I handle them and push the update. Your license includes every update for as long as I maintain it, which is for as long as I am using it myself.",
+    ],
   },
   {
     q: "What do I actually get, and for how long?",
-    a: ["The full repo on day one, a perpetual license, and lifetime updates for as long as the architecture is maintained. One-time fee, no subscription, unlimited projects."],
+    a: [
+      "The full repo on day one, a perpetual license, and lifetime updates for as long as the architecture is maintained. One-time fee, no subscription, unlimited projects.",
+    ],
+  },
+  {
+    q: "Do you offer support?",
+    a: [
+      "Yes. The purchase includes access to private GitHub discussions and a direct line to the maintainer for questions about the architecture and shipped setup.",
+    ],
+  },
+  {
+    q: "What if I find a bug?",
+    a: [
+      "Open it in the private repository and include a reproduction. Bugs in the maintained architecture are fixed and shipped as updates.",
+    ],
+  },
+  {
+    q: "Can I get a refund?",
+    a: [
+      "Sales are final because the full source is delivered immediately. Read the stack, audience, and licensing details above before purchasing.",
+    ],
+  },
+  {
+    q: "What is this not?",
+    a: [
+      "It is not a no-code builder, a visual editor, a generic starter, or an agent that writes the whole site for you. It is a real, opinionated Next.js and Sanity codebase that gives you a strong place to start.",
+    ],
   },
 ];
 
@@ -304,9 +386,9 @@ export const ROADMAP = [
   },
 ];
 export const README_LINES_ASTRO = [
-  "# The Content Architecture — Astro",
+  "# The Content Architecture (Astro)",
   "",
-  "The same architecture, ported to Astro 5 and Sanity v6.",
+  "The same architecture, ported to Astro 7 and Sanity v6.",
   "",
   "## Features",
   "",
@@ -331,42 +413,52 @@ export const README_LINES_ASTRO = [
 
 export const FILE_TREE = {
   "Next.js": [
-    "app/",
-    "app/(site)/page.tsx",
-    "app/(site)/[slug]/page.tsx",
-    "app/studio/[[...tool]]/page.tsx",
-    "components/",
-    "components/page-builder/",
-    "components/blocks/",
-    "sanity/",
-    "sanity/schema/",
-    "sanity/fetch/",
-    "lib/seo.ts",
-    "proxy.ts",
+    ".agents",
+    ".husky",
+    "app",
+    "components",
+    "docs",
+    "features",
+    "sanity",
+    "scripts",
+    "seed",
+    "templates",
+    ".env.example",
+    ".gitignore",
+    ".mcp.json",
+    ".npmrc",
+    ".nvmrc",
+    "AGENTS.md",
+    "assets.d.ts",
+    "biome.jsonc",
     "README.md",
   ],
   Astro: [
-    "src/pages/",
-    "src/pages/index.astro",
-    "src/pages/[...slug].astro",
-    "src/pages/studio/[...tool].astro",
-    "src/components/",
-    "src/components/page-builder/",
-    "src/components/blocks/",
-    "sanity/",
-    "sanity/schema/",
-    "sanity/fetch/",
-    "src/lib/seo.ts",
-    "src/middleware.ts",
+    ".agents",
+    ".husky",
+    "src",
+    "components",
+    "docs",
+    "features",
+    "sanity",
+    "scripts",
+    "seed",
+    "templates",
+    ".env.example",
+    ".gitignore",
+    ".mcp.json",
+    ".npmrc",
+    ".nvmrc",
+    "AGENTS.md",
+    "assets.d.ts",
+    "biome.jsonc",
     "README.md",
   ],
 } as const;
 
 export const TERMINAL_LINES = [
-  "$ npm run dev",
-  "▲ Next.js 16.0.0  ready in 412ms",
-  "○ Sanity Studio mounted at /studio",
-  "✓ Compiled /(site) in 190ms",
+  "~/the-content-architecture-next-js > get-access   # €549 · one-time",
+  "~/the-content-architecture-next-js > try: git, ls, tree, plop, cat README.md",
 ];
 
 /**

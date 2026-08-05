@@ -21,10 +21,9 @@ import type React from "react";
 import { cn } from "@/lib/utils";
 import { useScrollContainer } from "@/components/motion/scroll-container";
 
-const useLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffectRaw : useEffect;
+const useLayoutEffect = typeof window !== "undefined" ? useLayoutEffectRaw : useEffect;
 
-const EASE_OUT = [0, 0, 0.2, 1] as const;
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 /**
  * Entrances are only ever armed when the document is visible. A hidden tab
@@ -33,9 +32,7 @@ const EASE_OUT = [0, 0, 0.2, 1] as const;
  * state. Skipping the entrance keeps the CSS default — fully visible text.
  */
 function canArmEntrance() {
-  return (
-    typeof document !== "undefined" && document.visibilityState === "visible"
-  );
+  return typeof document !== "undefined" && document.visibilityState === "visible";
 }
 
 /** Reduced-motion query without depending on the Motion runtime. */
@@ -85,9 +82,7 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
 
     const check = () => {
       const rect = el.getBoundingClientRect();
-      const bounds = root
-        ? root.getBoundingClientRect()
-        : { top: 0, bottom: window.innerHeight };
+      const bounds = root ? root.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
       if (rect.bottom > bounds.top && rect.top < bounds.bottom) {
         reveal();
         return true;
@@ -164,13 +159,26 @@ export function LineReveal({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // The reference uses a variable font whose metrics affect line grouping.
+  // Re-measure once the browser has finished loading it; otherwise the first
+  // fallback-font pass can permanently keep a different wrap than the final UI.
+  useEffect(() => {
+    let cancelled = false;
+    document.fonts?.ready.then(() => {
+      if (cancelled) return;
+      setLines(null);
+      setMeasureKey((k) => k + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [text]);
+
   useLayoutEffect(() => {
     if (lines !== null) return;
     const el = ref.current;
     if (!el) return;
-    const spans = Array.from(
-      el.querySelectorAll<HTMLElement>("[data-line-word]"),
-    );
+    const spans = Array.from(el.querySelectorAll<HTMLElement>("[data-line-word]"));
     if (!spans.length) return;
     const grouped: string[] = [];
     let currentTop: number | null = null;
@@ -203,10 +211,7 @@ export function LineReveal({
   // Pre-measure pass: rendered fully visible (also the SSR / no-JS output).
   if (lines === null) {
     return (
-      <Tagged
-        className={className}
-        ref={ref as unknown as RefObject<HTMLHeadingElement>}
-      >
+      <Tagged className={className} ref={ref as unknown as RefObject<HTMLHeadingElement>}>
         {words.map((word, i) => (
           <span data-line-word key={`${word}-${i}`} className="inline-block">
             {word}
@@ -220,10 +225,7 @@ export function LineReveal({
   const hidden = armed && !shown;
 
   return (
-    <Tagged
-      className={className}
-      ref={ref as unknown as RefObject<HTMLHeadingElement>}
-    >
+    <Tagged className={className} ref={ref as unknown as RefObject<HTMLHeadingElement>}>
       {lines.map((line, i) => (
         <span
           key={`${line}-${i}`}
@@ -233,11 +235,13 @@ export function LineReveal({
           <span
             data-reveal={armed ? (hidden ? "pending" : "in") : undefined}
             className="block will-change-transform"
-            style={{
-              ["--reveal-y" as string]: "100%",
-              ["--reveal-duration" as string]: "420ms",
-              transitionDelay: `${delay * 1000 + i * 60}ms`,
-            } as React.CSSProperties}
+            style={
+              {
+                ["--reveal-y" as string]: "100%",
+                ["--reveal-duration" as string]: "420ms",
+                transitionDelay: `${delay * 1000 + i * 60}ms`,
+              } as React.CSSProperties
+            }
           >
             {line}
           </span>
@@ -494,10 +498,7 @@ export function SplitButton({
 /** Smoothed scroll progress for a section, 0 → 1 across its travel. */
 export function useSectionProgress(
   ref: RefObject<HTMLElement | null>,
-  offset: ["start end", "end start"] | ["start start", "end end"] = [
-    "start end",
-    "end start",
-  ],
+  offset: ["start end", "end start"] | ["start start", "end end"] = ["start end", "end start"],
 ): MotionValue<number> {
   const { scrollYProgress } = useScroll({ target: ref, offset });
   return useSpring(scrollYProgress, {

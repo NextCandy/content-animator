@@ -11,9 +11,7 @@ import {
   type RefObject,
 } from "react";
 
-const ScrollContainerContext = createContext<RefObject<HTMLDivElement | null> | null>(
-  null,
-);
+const ScrollContainerContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
 /** Ref to the element that actually scrolls (the Lenis wrapper). */
 export function useScrollContainer() {
@@ -107,7 +105,7 @@ export function ScrollContainer({ children }: { children: ReactNode }) {
     <ScrollContainerContext.Provider value={ref}>
       <div
         ref={ref}
-        className="lenis h-dvh overflow-x-clip overflow-y-auto overscroll-none"
+        className="lenis relative h-dvh overflow-x-clip overflow-y-auto overscroll-none"
       >
         <div>{children}</div>
       </div>
