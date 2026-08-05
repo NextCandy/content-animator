@@ -276,6 +276,7 @@ export function Reveal({
 
   useLayoutEffect(() => {
     if (reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, reduce]);
 
@@ -287,14 +288,14 @@ export function Reveal({
       {...rest}
       ref={ref}
       className={className}
-      style={{
-        opacity: hidden ? 0 : 1,
-        transform: hidden ? `translateY(${y}px)` : "translateY(0)",
-        transition: reduce
-          ? undefined
-          : `transform 400ms ${EASE_CSS}, opacity 400ms ${EASE_CSS}`,
-        transitionDelay: `${delay * 1000}ms`,
-      }}
+      data-reveal={armed && !reduce ? (hidden ? "pending" : "in") : undefined}
+      style={
+        {
+          ["--reveal-y" as string]: `${y}px`,
+          ["--reveal-duration" as string]: "400ms",
+          transitionDelay: `${delay * 1000}ms`,
+        } as React.CSSProperties
+      }
     >
       {children}
     </Tagged>
