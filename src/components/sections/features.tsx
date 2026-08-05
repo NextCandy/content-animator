@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export function Features() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const [open, setOpen] = useState<string | null>(FEATURES[0].n);
+  const [open, setOpen] = useState<string | null>(FEATURES[0]?.n ?? null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end end"],
