@@ -46,7 +46,7 @@ export function Hero() {
             as="h1"
             delay={0.1}
             text="The Sanity setup agents don't reinvent."
-            className="display-title mt-8 text-[clamp(2.75rem,8.2vw,6.5rem)]"
+            className="display-title mt-8 text-[clamp(2.5rem,5.6vw,4.75rem)]"
           />
 
           <motion.p
