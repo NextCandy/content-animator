@@ -19,13 +19,13 @@ export function Features() {
         </div>
       </div>
 
-      <div className="pointer-events-none grid grid-cols-1 gap-16 px-6 py-16 lg:grid-cols-12 lg:px-16 lg:py-[22svh]">
-        <ul className="flex flex-col gap-16 text-ink-foreground lg:col-span-5 lg:gap-[18svh]">
+      <div className="pointer-events-none grid grid-cols-1 gap-16 px-6 py-16 lg:grid-cols-12 lg:px-16 lg:py-[14svh]">
+        <ul className="flex flex-col gap-14 text-ink-foreground lg:col-span-5 lg:gap-[6svh]">
           {FEATURES.map((f, i) => (
             <li
               key={f.n}
               className={cn(
-                "pointer-events-auto flex flex-col gap-6 lg:max-w-1/2 lg:gap-12",
+                "pointer-events-auto flex flex-col gap-4 lg:max-w-1/2 lg:gap-6",
                 INDENTS[i % 3],
               )}
             >
