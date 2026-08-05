@@ -249,14 +249,17 @@ export function SplitButton({
   return (
     <a
       href={href}
-      className={cn("group inline-flex items-stretch gap-px", className)}
+      className={cn(
+        "group inline-flex items-stretch gap-px focus-visible:ring-2 focus-visible:ring-signal focus-visible:outline-none",
+        className,
+      )}
     >
       <span
         className={cn(
-          "mono-label flex items-center px-6 py-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-x-1",
+          "mono-label flex items-center px-6 py-4 transition-colors duration-150 ease-[cubic-bezier(0,0,0.2,1)]",
           dark
-            ? "bg-ink text-ink-foreground"
-            : "bg-background text-foreground",
+            ? "bg-ink text-ink-foreground group-hover:bg-ink/80"
+            : "bg-background text-foreground group-hover:bg-foreground/10",
           "rounded-l-[var(--radius)]",
         )}
       >
@@ -264,10 +267,10 @@ export function SplitButton({
       </span>
       <span
         className={cn(
-          "mono-label flex items-center px-6 py-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1",
+          "mono-label flex items-center px-6 py-4 transition-colors duration-200 ease-[cubic-bezier(0,0,0.2,1)]",
           dark
-            ? "bg-ink text-ink-foreground"
-            : "bg-background text-foreground",
+            ? "bg-ink text-ink-foreground group-hover:bg-ink/70"
+            : "bg-background text-foreground group-hover:bg-foreground/20",
           "rounded-r-[var(--radius)]",
         )}
       >
