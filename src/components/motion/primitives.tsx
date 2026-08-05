@@ -191,6 +191,7 @@ export function LineReveal({
   // Arm the hidden state before the browser paints the measured lines.
   useLayoutEffect(() => {
     if (lines === null || reduce || armed) return;
+    if (!canArmEntrance()) return;
     setArmed(true);
   }, [armed, lines, reduce]);
 
@@ -231,13 +232,13 @@ export function LineReveal({
           style={{ paddingBottom: "0.16em", marginBottom: "-0.16em" }}
         >
           <span
+            data-reveal={armed ? (hidden ? "pending" : "in") : undefined}
             className="block will-change-transform"
             style={{
-              opacity: hidden ? 0 : 1,
-              transform: hidden ? "translateY(100%)" : "translateY(0)",
-              transition: `transform 420ms ${EASE_CSS}, opacity 420ms ${EASE_CSS}`,
+              ["--reveal-y" as string]: "100%",
+              ["--reveal-duration" as string]: "420ms",
               transitionDelay: `${delay * 1000 + i * 60}ms`,
-            }}
+            } as React.CSSProperties}
           >
             {line}
           </span>
