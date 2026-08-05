@@ -74,14 +74,14 @@ export function Showcase() {
     container: container ?? fallback,
     offset: ["start start", "end end"],
   });
-  const gridY = useTransform(scrollYProgress, [0.05, 0.85], ["0%", "-46%"]);
+  const gridY = useTransform(scrollYProgress, [0.05, 0.85], ["0%", "-62%"]);
   const total = TESTIMONIALS.length;
 
   return (
     <section
       id="showcase"
       ref={sectionRef}
-      className="relative scroll-mt-24 py-28 lg:h-[240svh] lg:py-0"
+      className="relative scroll-mt-24 py-28 lg:h-[350svh] lg:py-0"
     >
       <div className="mx-auto max-w-[1400px] px-6 md:px-10 lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col lg:justify-center lg:overflow-hidden lg:py-[10svh]">
         <Reveal>

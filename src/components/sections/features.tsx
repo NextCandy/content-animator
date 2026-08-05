@@ -19,8 +19,8 @@ export function Features() {
         </div>
       </div>
 
-      <div className="pointer-events-none grid grid-cols-1 gap-16 px-6 py-16 lg:grid-cols-12 lg:px-16 lg:py-[14svh]">
-        <ul className="flex flex-col gap-14 text-ink-foreground lg:col-span-5 lg:gap-[6svh]">
+      <div className="pointer-events-none grid grid-cols-1 gap-16 px-6 py-16 lg:grid-cols-12 lg:px-16 lg:py-[10svh]">
+        <ul className="flex flex-col gap-14 text-ink-foreground lg:col-span-5 lg:gap-[4svh]">
           {FEATURES.map((f, i) => (
             <li
               key={f.n}
