@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
   motion,
   useReducedMotion,
@@ -9,7 +9,7 @@ import {
   SplitButton,
   Marquee,
 } from "@/components/motion/primitives";
-import { AsciiField } from "@/components/motion/ascii-field";
+import { VortexPanel } from "@/components/motion/ascii-field";
 import { useScrollContainer } from "@/components/motion/scroll-container";
 import { STRIPE_URL, TICKER_ITEMS } from "@/lib/site-data";
 
@@ -18,7 +18,6 @@ export function Hero() {
   const reduce = useReducedMotion();
   const container = useScrollContainer();
   const fallback = useRef<HTMLDivElement>(null);
-  const [seed, setSeed] = useState(0);
   const { scrollYProgress } = useScroll({
     target: ref,
     container: container ?? fallback,
@@ -34,21 +33,7 @@ export function Hero() {
         style={{ width: reduce ? "50%" : panelWidth }}
         className="absolute inset-y-0 right-0 hidden bg-ink md:block"
       >
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Reshuffle the ASCII field"
-          onClick={() => setSeed((s) => s + 1)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setSeed((s) => s + 1);
-            }
-          }}
-          className="relative size-full cursor-pointer overflow-hidden select-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          <AsciiField seed={seed} />
-        </div>
+        <VortexPanel />
       </motion.div>
 
       <motion.div
