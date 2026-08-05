@@ -32,16 +32,10 @@ export function Pricing() {
 
         <div className="mt-16 grid gap-px border border-ink-border bg-ink-border md:grid-cols-3">
           {PLANS.map((plan, i) => (
-            <motion.div
+            <Reveal
               key={plan.name}
-              initial={{ opacity: 0, y: reduce ? 0 : 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-8% 0px" }}
-              transition={{
-                duration: 0.4,
-                delay: reduce ? 0 : i * 0.09,
-                ease: [0, 0, 0.2, 1],
-              }}
+              y={reduce ? 0 : 30}
+              delay={reduce ? 0 : i * 0.09}
               className={cn(
                 "relative flex flex-col bg-ink p-8 transition-[box-shadow,background-color] duration-200 ease-out hover:bg-white/[0.06] hover:ring-2 hover:ring-accent",
               )}
@@ -98,7 +92,7 @@ export function Pricing() {
                   {plan.status === "available" ? "Available now" : "In development"}
                 </p>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
