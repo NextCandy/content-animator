@@ -5,6 +5,7 @@ import {
   useScroll,
   useTransform,
   Reveal,
+  Marquee,
 } from "@/components/motion/primitives";
 import { AsciiField } from "@/components/motion/ascii-field";
 import { useScrollContainer } from "@/components/motion/scroll-container";

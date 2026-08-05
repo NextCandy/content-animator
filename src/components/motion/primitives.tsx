@@ -219,7 +219,7 @@ export function Marquee({
   return (
     <div className={cn("group relative overflow-hidden", className)}>
       <div
-        className="flex w-max animate-[marquee_linear_infinite] group-hover:[animation-play-state:paused]"
+        className="flex w-max animate-[marquee_linear_infinite] group-hover:[animation-play-state:paused] motion-reduce:animate-none"
         style={{ animationDuration: `${speed}s` }}
       >
         <div className="flex shrink-0 items-center">{children}</div>
