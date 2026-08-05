@@ -221,11 +221,13 @@ export function Reveal({
   className,
   delay = 0,
   y = 16,
+  as: Tag = "div",
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
   y?: number;
+  as?: "div" | "li" | "p" | "span";
 }) {
   const reduce = usePrefersReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -238,9 +240,10 @@ export function Reveal({
   }, [armed, reduce]);
 
   const hidden = armed && !shown && !reduce;
+  const Tagged = Tag as "div";
 
   return (
-    <div
+    <Tagged
       ref={ref}
       className={className}
       style={{
@@ -253,7 +256,7 @@ export function Reveal({
       }}
     >
       {children}
-    </div>
+    </Tagged>
   );
 }
 
