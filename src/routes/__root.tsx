@@ -94,6 +94,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "The Content Architecture" },
+      { name: "twitter:description", content: "The Next.js and Sanity architecture agents don't reinvent. Six years of decisions, committed." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61b955b1-9daf-4521-b49c-7e638c9ba67c/id-preview-87b5b787--d75a1c08-0d42-49a8-9512-7a2179f6b1e1.lovable.app-1785889157807.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61b955b1-9daf-4521-b49c-7e638c9ba67c/id-preview-87b5b787--d75a1c08-0d42-49a8-9512-7a2179f6b1e1.lovable.app-1785889157807.png" },
     ],
     links: [
       {
