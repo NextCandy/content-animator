@@ -27,6 +27,18 @@ const useLayoutEffect =
 const EASE_OUT = [0, 0, 0.2, 1] as const;
 const EASE_CSS = "cubic-bezier(0, 0, 0.2, 1)";
 
+/**
+ * Entrances are only ever armed when the document is visible. A hidden tab
+ * (background tab, session restore, browser prerender) freezes rAF and
+ * animation frames, so arming there would leave copy stuck at its start
+ * state. Skipping the entrance keeps the CSS default — fully visible text.
+ */
+function canArmEntrance() {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "visible"
+  );
+}
+
 /** Reduced-motion query without depending on the Motion runtime. */
 function usePrefersReducedMotion() {
   const [reduce, setReduce] = useState(false);
@@ -66,6 +78,12 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
       });
     };
 
+    // If the tab goes hidden mid-flight, rAF stops: show the copy immediately.
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") setInView(true);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     const check = () => {
       const rect = el.getBoundingClientRect();
       const bounds = root
@@ -79,6 +97,7 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
     };
     if (check()) {
       return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
         cancelAnimationFrame(raf1);
         cancelAnimationFrame(raf2);
       };
@@ -97,6 +116,7 @@ function useRevealInView(ref: RefObject<HTMLElement | null>, enabled = true) {
 
     return () => {
       observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
       window.clearTimeout(timer);
