@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   motion,
   useReducedMotion,
@@ -8,6 +8,7 @@ import {
   SplitButton,
   Marquee,
 } from "@/components/motion/primitives";
+import { AsciiField } from "@/components/motion/ascii-field";
 import { useScrollContainer } from "@/components/motion/scroll-container";
 import { STRIPE_URL, TICKER_ITEMS } from "@/lib/site-data";
 
@@ -16,6 +17,7 @@ export function Hero() {
   const reduce = useReducedMotion();
   const container = useScrollContainer();
   const fallback = useRef<HTMLDivElement>(null);
+  const [seed, setSeed] = useState(0);
   const { scrollYProgress } = useScroll({
     target: ref,
     container: container ?? fallback,
@@ -28,29 +30,53 @@ export function Hero() {
   return (
     <section ref={ref} className="relative min-h-[100svh] overflow-hidden">
       <motion.div
-        aria-hidden
         style={{ width: reduce ? "50%" : panelWidth }}
         className="absolute inset-y-0 right-0 hidden bg-ink md:block"
-      />
+      >
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Reshuffle the ASCII field"
+          onClick={() => setSeed((s) => s + 1)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSeed((s) => s + 1);
+            }
+          }}
+          className="relative size-full cursor-pointer overflow-hidden select-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          <AsciiField seed={seed} />
+        </div>
+      </motion.div>
+
       <motion.div
         style={{ y: contentY, opacity: contentOpacity }}
-        className="relative mx-auto flex min-h-[100svh] max-w-[1400px] flex-col justify-center px-6 py-32 md:px-10"
+        className="pointer-events-none relative mx-auto grid min-h-[100svh] max-w-[1400px] grid-cols-1 items-center px-6 py-32 md:grid-cols-2 md:px-10"
       >
-        <div className="max-w-[46rem]">
+        <div className="pointer-events-auto max-w-[46rem] md:pr-10">
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0, 0, 0.2, 1] }}
-            className="mono-label text-foreground"
+            className="mono-label relative inline-block text-foreground"
           >
             Built for agentic development.
+            <span
+              aria-hidden
+              className="animate-cursor-blink absolute top-0 left-full ml-px h-[1em] w-[0.55em] translate-y-[0.15em] bg-current motion-reduce:hidden"
+            />
+            <span
+              aria-hidden
+              className="absolute top-0 left-full ml-px hidden h-[1em] w-[0.55em] translate-y-[0.15em] bg-current motion-reduce:block"
+            />
           </motion.p>
 
           <MaskReveal
             as="h1"
             delay={0.1}
             text="The Sanity setup agents don't reinvent."
-            className="display-title mt-8 text-[clamp(2.5rem,5.6vw,4.75rem)]"
+            className="display-title mt-8 text-[clamp(2.25rem,4.4vw,4rem)]"
           />
 
           <motion.p
@@ -83,6 +109,15 @@ export function Hero() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Scroll cue */}
+      <div
+        aria-hidden
+        className="absolute bottom-24 left-6 z-10 hidden h-16 w-px bg-border md:left-10 lg:block"
+      >
+        <span className="animate-hero-scroll-cue absolute top-0 left-1/2 block h-2 w-px -translate-x-1/2 bg-foreground motion-reduce:hidden" />
+        <span className="absolute top-0 left-1/2 hidden h-2 w-px -translate-x-1/2 bg-foreground motion-reduce:block" />
+      </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10 border-t border-border bg-background/70 backdrop-blur-sm">
         <Marquee speed={30} className="py-3">
