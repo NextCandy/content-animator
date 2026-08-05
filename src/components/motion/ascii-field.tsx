@@ -1,47 +1,33 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ASCII_PHRASES } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
-const PHRASES = [
-  "ONE MEDIA FIELD ONE SHAPE",
-  "FETCH LAYER SOLVED",
-  "A PAGE BUILDER WITH GUARDRAILS",
-  "SCHEMA AS A SYSTEM",
-  "WIRED UP NOT JUST CLONED",
-  "SEO DONE NOT DEFERRED",
-  "AGENT-NATIVE NO DRIFT",
-  "THE HARD FIELDS ALREADY BUILT",
-];
-const CHARS = "/#*_·-+=<>[]{}01";
-
-function randomCell() {
-  if (Math.random() < 0.22) {
-    const phrase = PHRASES[Math.floor(Math.random() * PHRASES.length)]!;
-    return phrase[Math.floor(Math.random() * phrase.length)]!;
-  }
-  if (Math.random() < 0.55) return " ";
-  return CHARS[Math.floor(Math.random() * CHARS.length)]!;
-}
+const LOOSE_CHARS = "/#*_·-+=<>[]{}01";
 
 /**
  * Live monospace ASCII character field drawn on a canvas.
- * Shimmers a few percent of cells per frame at ~13fps, pauses offscreen,
- * and renders a single static frame under prefers-reduced-motion.
+ *
+ * The field is a sparse layer of readable uppercase phrases from the site's own
+ * copy, plus a minority of loose single characters for texture. Roughly half of
+ * the cells stay empty so the field breathes and never competes with the
+ * foreground copy. A few phrases mutate per frame at ~13fps, the loop pauses
+ * offscreen, and a single static frame renders under prefers-reduced-motion.
  */
 export function AsciiField({
   className,
-  color = "rgba(255,255,255,0.11)",
+  color = "rgba(255,255,255,0.07)",
   fontSize = 13,
-  density = 0.04,
+  density = 0.008,
   seed = 0,
 }: {
   className?: string;
-  /** Glyph color. */
+  /** Glyph color. Keep the alpha low: this is texture, not content. */
   color?: string;
   /** Glyph font size in CSS pixels. */
   fontSize?: number;
-  /** Fraction of cells replaced each frame. */
+  /** Phrases per cell — drives how many phrases fill the grid. */
   density?: number;
   /** Change this value to reshuffle the whole field. */
   seed?: number;
@@ -62,9 +48,48 @@ export function AsciiField({
     let cols = 0;
     let rows = 0;
     let grid: string[] = [];
+    let phraseCount = 0;
     let visible = true;
     let raf = 0;
     let last = 0;
+
+    const clearRow = (row: number, from: number, len: number) => {
+      for (let c = from; c < from + len && c < cols; c++) grid[row * cols + c] = " ";
+    };
+
+    /** Write one random phrase horizontally into consecutive cells. */
+    const placePhrase = () => {
+      const phrase = ASCII_PHRASES[Math.floor(Math.random() * ASCII_PHRASES.length)]!;
+      if (cols < 4 || rows < 1) return;
+      const row = Math.floor(Math.random() * rows);
+      const maxStart = Math.max(0, cols - phrase.length);
+      const start = Math.floor(Math.random() * (maxStart + 1));
+      for (let i = 0; i < phrase.length && start + i < cols; i++) {
+        grid[row * cols + start + i] = phrase[i]!;
+      }
+    };
+
+    /** Remove one random phrase-sized run so the field stays sparse. */
+    const clearRandomRun = () => {
+      if (rows < 1 || cols < 4) return;
+      const row = Math.floor(Math.random() * rows);
+      const len = 12 + Math.floor(Math.random() * 20);
+      clearRow(row, Math.floor(Math.random() * cols), len);
+    };
+
+    const buildGrid = () => {
+      grid = new Array(cols * rows).fill(" ");
+      phraseCount = Math.max(3, Math.round(cols * rows * density));
+      for (let i = 0; i < phraseCount; i++) placePhrase();
+      // Minority of loose characters for texture (~1.5% of cells).
+      const loose = Math.round(cols * rows * 0.015);
+      for (let i = 0; i < loose; i++) {
+        const idx = Math.floor(Math.random() * grid.length);
+        if (grid[idx] === " ") {
+          grid[idx] = LOOSE_CHARS[Math.floor(Math.random() * LOOSE_CHARS.length)]!;
+        }
+      }
+    };
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -91,7 +116,7 @@ export function AsciiField({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       cols = Math.ceil(w / cellW);
       rows = Math.ceil(h / cellH);
-      grid = Array.from({ length: cols * rows }, randomCell);
+      buildGrid();
       draw();
     };
 
@@ -99,9 +124,11 @@ export function AsciiField({
       raf = requestAnimationFrame(tick);
       if (!visible || now - last < 1000 / 13) return;
       last = now;
-      const changes = Math.max(1, Math.floor(grid.length * density));
-      for (let i = 0; i < changes; i++) {
-        grid[Math.floor(Math.random() * grid.length)] = randomCell();
+      // Mutate only a couple of phrases per frame so fragments stay readable.
+      const churn = Math.max(1, Math.round(phraseCount * 0.05));
+      for (let i = 0; i < churn; i++) {
+        clearRandomRun();
+        placePhrase();
       }
       draw();
     };
@@ -133,7 +160,7 @@ export function AsciiField({
     <canvas
       ref={canvasRef}
       aria-hidden
-      className={cn("pointer-events-none block size-full motion-reduce:opacity-60", className)}
+      className={cn("pointer-events-none block size-full", className)}
     />
   );
 }

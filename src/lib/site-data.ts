@@ -368,3 +368,25 @@ export const TERMINAL_LINES = [
   "○ Sanity Studio mounted at /studio",
   "✓ Compiled /(site) in 190ms",
 ];
+
+/**
+ * Uppercase copy fragments painted into the AsciiField canvases.
+ * Feature titles are derived from FEATURES so the field stays in sync.
+ */
+export const ASCII_PHRASES: string[] = [
+  ...FEATURES.map((f) => f.title.toUpperCase()),
+  "ONE MEDIA FIELD ONE SHAPE",
+  "A PAGE BUILDER WITH GUARDRAILS",
+  "FETCH LAYER SOLVED",
+  "SCHEMA AS A SYSTEM",
+  "WIRED UP NOT JUST CLONED",
+  "SEO DONE NOT DEFERRED",
+  "AGENT-NATIVE NO DRIFT",
+  "THE HARD FIELDS ALREADY BUILT",
+  "A STUDIO EDITORS ACTUALLY USE",
+  "PRODUCTION-READY FROM DAY ONE",
+  "EVERY DECISION ALREADY MADE",
+  "WEBHOOKS INVALIDATE ON PUBLISH",
+  "CDN BYPASSED IN PRODUCTION",
+  "DRAFT MODE WIRED IN",
+];
